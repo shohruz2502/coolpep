@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Сообщества</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель */
+        .top-bar {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #667eea;
+            letter-spacing: 1px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        /* Вкладки */
+        .tabs-container {
+            background: white;
+            display: flex;
+            padding: 0 20px;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 66px;
+            z-index: 90;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: #667eea;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .tab-badge {
+            background: #667eea;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+        
+        /* Основной контент */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Мои сообщества */
+        .my-communities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .community-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .community-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .community-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .community-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .community-info {
+            flex: 1;
+        }
+        
+        .community-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .community-type {
+            font-size: 12px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .community-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+        
+        .community-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .community-locked {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            position: relative;
+        }
+        
+        .lock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        /* Рекомендации */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        
+        .recommendation-header {
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            padding: 15px;
+            color: white;
+        }
+        
+        .recommendation-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-body {
+            padding: 20px;
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .recommendation-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            height: 60px;
+            overflow: hidden;
+        }
+        
+        .recommendation-members {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .join-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .join-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .joined-button {
+            background: #4cd964;
+            color: white;
+        }
+        
+        /* Поиск сообществ */
+        .search-container {
+            margin-bottom: 25px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .category {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .category.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .category:hover:not(.active) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .search-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+            background: white;
+            border-radius: 15px;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .empty-subtitle {
+            font-size: 14px;
+            margin-bottom: 20px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+        
+        .create-community-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Создание сообщества */
+        .create-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 14px;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .checkbox-input {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+        
+        .submit-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Кнопка создания сообщества */
+        .create-community-fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        
+        .create-community-fab:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .my-communities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .recommendations-grid,
+            .search-results {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-container {
+                overflow-x: auto;
+                padding: 0 15px;
+            }
+            
+            .tab {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="logo">Coolpep</div>
+        <div class="header-title">Сообщества</div>
+        <div class="user-avatar" id="userAvatar" title="Профиль" onclick="window.location.href='#'">А</div>
+    </div>
+    
+    <!-- Вкладки -->
+    <div class="tabs-container">
+        <div class="tab active" onclick="switchTab('my')">Мои сообщества <span class="tab-badge">3</span></div>
+        <div class="tab" onclick="switchTab('recommended')">Рекомендации</div>
+        <div class="tab" onclick="switchTab('search')">Поиск</div>
+        <div class="tab" onclick="switchTab('create')">Создать</div>
+    </div>
+    
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Мои сообщества -->
+        <div class="tab-content active" id="myTab">
+            <div class="my-communities-grid">
+                <!-- Сообщество 1 -->
+                <div class="community-card" onclick="enterCommunity('work')">
+                    <div class="community-header">
+                        <div class="community-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            💼
+                        </div>
+                        <div class="community-info">
+                            <div class="community-name">Офисные будни</div>
+                            <div class="community-type">РАБОТА</div>
+                        </div>
+                    </div>
+                    <div class="community-stats">
+                        <div class="community-stat">👥 845 участников</div>
+                        <div class="community-stat">💬 127 сегодня</div>
+                    </div>
+                </div>
+                
+                <!-- Сообщество 2 -->
+                <div class="community-card community-locked" onclick="enterCommunity('university')">
+                    <div class="lock-badge">🔒</div>
+                    <div class="community-header">
+                        <div class="community-icon" style="background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);">
+                            🎓
+                        </div>
+                        <div class="community-info">
+                            <div class="community-name">Мой Университет</div>
+                            <div class="community-type">УНИВЕРСИТЕТ</div>
+                        </div>
+                    </div>
+                    <div class="community-stats">
+                        <div class="community-stat">👥 1.2K участников</div>
+                        <div class="community-stat">🔒 Требуется пароль</div>
+                    </div>
+                </div>
+                
+                <!-- Сообщество 3 -->
+                <div class="community-card" onclick="enterCommunity('school')">
+                    <div class="community-header">
+                        <div class="community-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);">
+                            🏫
+                        </div>
+                        <div class="community-info">
+                            <div class="community-name">Школа №157</div>
+                            <div class="community-type">ШКОЛА</div>
+                        </div>
+                    </div>
+                    <div class="community-stats">
+                        <div class="community-stat">👥 342 участника</div>
+                        <div class="community-stat">💬 45 сегодня</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="empty-state">
+                <div class="empty-icon">👨‍👩‍👧‍👦</div>
+                <h3 class="empty-title">Больше сообществ</h3>
+                <p class="empty-subtitle">
+                    Присоединяйтесь к новым сообществам по интересам, работе или учебе
+                </p>
+                <button class="create-community-btn" onclick="switchTab('recommended')">
+                    Исследовать сообщества
+                </button>
+            </div>
+        </div>
+        
+        <!-- Рекомендации -->
+        <div class="tab-content" id="recommendedTab">
+            <div class="recommendations-grid">
+                <!-- Рекомендация 1 -->
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon">🎮</div>
+                        <div style="font-weight: 600; font-size: 18px;">Геймеры RU</div>
+                    </div>
+                    <div class="recommendation-body">
+                        <div class="recommendation-title">Геймеры России</div>
+                        <div class="recommendation-description">
+                            Сообщество для обсуждения игр, поиска тиммейтов и обмена впечатлениями. PC, консоли, мобильные игры.
+                        </div>
+                        <div class="recommendation-members">
+                            <span>👥 5.7K участников</span>
+                            <button class="join-button" onclick="joinCommunity(this)">Вступить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Рекомендация 2 -->
+                <div class="recommendation-card">
+                    <div class="recommendation-header" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);">
+                        <div class="recommendation-icon">🎵</div>
+                        <div style="font-weight: 600; font-size: 18px;">Музыкальные фанаты</div>
+                    </div>
+                    <div class="recommendation-body">
+                        <div class="recommendation-title">Музыкальные фанаты</div>
+                        <div class="recommendation-description">
+                            Обсуждаем новые релизы, делимся плейлистами, находим единомышленников по музыкальным вкусам.
+                        </div>
+                        <div class="recommendation-members">
+                            <span>👥 3.1K участников</span>
+                            <button class="join-button joined-button" onclick="leaveCommunity(this)">✓ Выход</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Рекомендация 3 -->
+                <div class="recommendation-card">
+                    <div class="recommendation-header" style="background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);">
+                        <div class="recommendation-icon">💻</div>
+                        <div style="font-weight: 600; font-size: 18px;">IT Сообщество</div>
+                    </div>
+                    <div class="recommendation-body">
+                        <div class="recommendation-title">IT Сообщество</div>
+                        <div class="recommendation-description">
+                            Для разработчиков, дизайнеров и IT-специалистов. Обсуждение технологий, карьеры и проектов.
+                        </div>
+                        <div class="recommendation-members">
+                            <span>👥 8.9K участников</span>
+                            <button class="join-button" onclick="joinCommunity(this)">Вступить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Рекомендация 4 -->
+                <div class="recommendation-card">
+                    <div class="recommendation-header" style="background: linear-gradient(135deg, #af52de 0%, #ff2d55 100%);">
+                        <div class="recommendation-icon">🎨</div>
+                        <div style="font-weight: 600; font-size: 18px;">Дизайнеры</div>
+                    </div>
+                    <div class="recommendation-body">
+                        <div class="recommendation-title">Сообщество дизайнеров</div>
+                        <div class="recommendation-description">
+                            UI/UX, графический дизайн, иллюстрация. Критика работ, обсуждение трендов и поиск вдохновения.
+                        </div>
+                        <div class="recommendation-members">
+                            <span>👥 4.2K участников</span>
+                            <button class="join-button" onclick="joinCommunity(this)">Вступить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Поиск сообществ -->
+        <div class="tab-content" id="searchTab">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск сообществ по названию, типу или описанию...">
+                
+                <div class="categories">
+                    <div class="category active" data-category="all">Все</div>
+                    <div class="category" data-category="university">Университет</div>
+                    <div class="category" data-category="school">Школа</div>
+                    <div class="category" data-category="work">Работа</div>
+                    <div class="category" data-category="college">Колледж</div>
+                    <div class="category" data-category="hobby">Хобби</div>
+                </div>
+            </div>
+            
+            <div class="search-results" id="searchResults">
+                <!-- Результаты поиска будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- Создание сообщества -->
+        <div class="tab-content" id="createTab">
+            <div class="create-form">
+                <h2 style="margin-bottom: 25px; color: #333;">Создать новое сообщество</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Название сообщества</label>
+                    <input type="text" class="form-input" id="communityName" placeholder="Например: Мой Университет">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Тип сообщества</label>
+                    <select class="form-select" id="communityType">
+                        <option value="">Выберите тип</option>
+                        <option value="university">Университет</option>
+                        <option value="college">Колледж</option>
+                        <option value="school">Школа</option>
+                        <option value="work">Работа</option>
+                        <option value="hobby">Хобби</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-textarea" id="communityDescription" placeholder="Опишите ваше сообщество..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Настройки приватности</label>
+                    <div class="form-checkbox">
+                        <input type="checkbox" class="checkbox-input" id="isPrivate">
+                        <span>Закрытое сообщество (требуется пароль для входа)</span>
+                    </div>
+                    <input type="password" class="form-input" id="communityPassword" placeholder="Пароль для входа" style="display: none; margin-top: 10px;">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Лимит участников</label>
+                    <div class="form-checkbox">
+                        <input type="checkbox" class="checkbox-input" id="limitMembers">
+                        <span>Ограничить количество участников (максимум 2000)</span>
+                    </div>
+                </div>
+                
+                <button class="submit-button" onclick="createCommunity()">Создать сообщество</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Кнопка создания сообщества -->
+    <button class="create-community-fab" onclick="switchTab('create')">+</button>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item active">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Данные для демонстрации
+        const communities = [
+            { id: 1, name: "МГУ им. Ломоносова", type: "university", members: 12500, description: "Официальное сообщество МГУ", locked: true },
+            { id: 2, name: "ИТМО", type: "university", members: 8400, description: "Университет ИТМО", locked: false },
+            { id: 3, name: "Школа №157", type: "school", members: 342, description: "Выпускники и ученики", locked: false },
+            { id: 4, name: "Яндекс", type: "work", members: 5600, description: "Сообщество сотрудников", locked: true },
+            { id: 5, name: "Колледж связи", type: "college", members: 1200, description: "Колледж связи №54", locked: false },
+            { id: 6, name: "Геймеры RU", type: "hobby", members: 5700, description: "Сообщество геймеров", locked: false },
+            { id: 7, name: "IT Сообщество", type: "hobby", members: 8900, description: "Для IT-специалистов", locked: false },
+            { id: 8, name: "Дизайнеры", type: "hobby", members: 4200, description: "Сообщество дизайнеров", locked: false },
+            { id: 9, name: "Сбербанк", type: "work", members: 15200, description: "Корпоративное сообщество", locked: true },
+            { id: 10, name: "Школа программирования", type: "school", members: 2800, description: "Курсы программирования", locked: false }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка данных пользователя
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            if (userData.name) {
+                const firstLetter = userData.name.charAt(0);
+                const secondLetter = userData.surname ? userData.surname.charAt(0) : '';
+                document.getElementById('userAvatar').textContent = firstLetter + secondLetter;
+            }
+            
+            // Инициализация поиска
+            initSearch();
+            
+            // Настройка переключателя приватности
+            document.getElementById('isPrivate').addEventListener('change', function() {
+                const passwordInput = document.getElementById('communityPassword');
+                passwordInput.style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Загрузка категорий поиска
+            initCategories();
+        });
+        
+        function switchTab(tabName) {
+            // Обновление активной вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Находим и активируем нужную вкладку
+            const tabs = document.querySelectorAll('.tab');
+            for (let tab of tabs) {
+                if (tab.textContent.includes(getTabName(tabName))) {
+                    tab.classList.add('active');
+                    break;
+                }
+            }
+            
+            // Показать соответствующий контент
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Если это поиск - загрузить результаты
+            if (tabName === 'search') {
+                performSearch();
+            }
+        }
+        
+        function getTabName(key) {
+            const names = {
+                'my': 'Мои сообщества',
+                'recommended': 'Рекомендации',
+                'search': 'Поиск',
+                'create': 'Создать'
+            };
+            return names[key];
+        }
+        
+        function enterCommunity(type) {
+            if (type === 'university') {
+                // Закрытое сообщество - запросить пароль
+                const password = prompt('Введите пароль для входа в сообщество "Мой Университет":');
+                if (password === '1234') {
+                    localStorage.setItem('current_community', JSON.stringify({
+                        name: "Мой Университет",
+                        type: "university",
+                        isAdmin: true
+                    }));
+                    window.location.href = 'community-admin.html';
+                } else if (password) {
+                    alert('Неверный пароль');
+                }
+            } else {
+                // Открытое сообщество
+                localStorage.setItem('current_community', JSON.stringify({
+                    name: type === 'work' ? "Офисные будни" : "Школа №157",
+                    type: type,
+                    isAdmin: false
+                }));
+                window.location.href = 'community-chat.html';
+            }
+        }
+        
+        function joinCommunity(button) {
+            if (button.classList.contains('joined-button')) {
+                button.classList.remove('joined-button');
+                button.textContent = 'Вступить';
+                alert('Вы вышли из сообщества');
+            } else {
+                button.classList.add('joined-button');
+                button.textContent = '✓ Выход';
+                alert('Вы успешно вступили в сообщество!');
+            }
+        }
+        
+        function leaveCommunity(button) {
+            button.classList.remove('joined-button');
+            button.textContent = 'Вступить';
+            alert('Вы вышли из сообщества');
+        }
+        
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', performSearch);
+        }
+        
+        function initCategories() {
+            const categories = document.querySelectorAll('.category');
+            categories.forEach(category => {
+                category.addEventListener('click', function() {
+                    categories.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    performSearch();
+                });
+            });
+        }
+        
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const activeCategory = document.querySelector('.category.active').dataset.category;
+            const resultsContainer = document.getElementById('searchResults');
+            
+            // Фильтрация сообществ
+            let filtered = communities.filter(community => {
+                const matchesSearch = community.name.toLowerCase().includes(searchTerm) || 
+                                     community.description.toLowerCase().includes(searchTerm);
+                const matchesCategory = activeCategory === 'all' || community.type === activeCategory;
+                return matchesSearch && matchesCategory;
+            });
+            
+            // Очистка результатов
+            resultsContainer.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Сообщества не найдены</h3>
+                        <p class="empty-subtitle">
+                            Попробуйте изменить запрос или выберите другую категорию
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Отображение результатов
+            filtered.forEach(community => {
+                const communityCard = document.createElement('div');
+                communityCard.className = 'community-card';
+                communityCard.onclick = () => viewCommunity(community);
+                
+                const iconMap = {
+                    'university': '🎓',
+                    'school': '🏫',
+                    'work': '💼',
+                    'college': '🎓',
+                    'hobby': '🎯'
+                };
+                
+                const colorMap = {
+                    'university': 'linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%)',
+                    'school': 'linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%)',
+                    'work': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'college': 'linear-gradient(135deg, #af52de 0%, #ff2d55 100%)',
+                    'hobby': 'linear-gradient(135deg, #007aff 0%, #34c759 100%)'
+                };
+                
+                communityCard.innerHTML = `
+                    <div class="community-header">
+                        <div class="community-icon" style="background: ${colorMap[community.type] || '#667eea'}">
+                            ${iconMap[community.type] || '👥'}
+                        </div>
+                        <div class="community-info">
+                            <div class="community-name">${community.name}</div>
+                            <div class="community-type">${community.type.toUpperCase()}</div>
+                        </div>
+                        ${community.locked ? '<div class="lock-badge">🔒</div>' : ''}
+                    </div>
+                    <div class="community-stats">
+                        <div class="community-stat">👥 ${community.members.toLocaleString()} участников</div>
+                        <div class="community-stat">${community.locked ? '🔒 Требуется пароль' : '🌐 Открытое'}</div>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(communityCard);
+            });
+        }
+        
+        function viewCommunity(community) {
+            if (community.locked) {
+                const password = prompt(`Введите пароль для входа в "${community.name}":`);
+                if (password === '1234') {
+                    alert('Пароль верный! Вход в сообщество...');
+                    // Здесь был бы переход в чат сообщества
+                } else if (password) {
+                    alert('Неверный пароль');
+                }
+            } else {
+                alert(`Переход в сообщество "${community.name}"`);
+                // Здесь был бы переход в чат сообщества
+            }
+        }
+        
+        function createCommunity() {
+            const name = document.getElementById('communityName').value.trim();
+            const type = document.getElementById('communityType').value;
+            const description = document.getElementById('communityDescription').value.trim();
+            const isPrivate = document.getElementById('isPrivate').checked;
+            const password = document.getElementById('communityPassword').value;
+            
+            if (!name || !type) {
+                alert('Пожалуйста, заполните название и выберите тип сообщества');
+                return;
+            }
+            
+            if (isPrivate && !password) {
+                alert('Для закрытого сообщества требуется пароль');
+                return;
+            }
+            
+            // В реальном приложении здесь был бы запрос к серверу
+            const newCommunity = {
+                name: name,
+                type: type,
+                description: description,
+                isPrivate: isPrivate,
+                members: 1, // создатель
+                createdAt: new Date().toLocaleDateString()
+            };
+            
+            alert(`Сообщество "${name}" успешно создано!\n\nТип: ${type}\nПриватность: ${isPrivate ? 'Закрытое' : 'Открытое'}\n\nВы стали администратором этого сообщества.`);
+            
+            // Сброс формы
+            document.getElementById('communityName').value = '';
+            document.getElementById('communityType').value = '';
+            document.getElementById('communityDescription').value = '';
+            document.getElementById('isPrivate').checked = false;
+            document.getElementById('communityPassword').value = '';
+            document.getElementById('communityPassword').style.display = 'none';
+            
+            // Переход на вкладку "Мои сообщества"
+            switchTab('my');
+        }
+    </script>
+</body>
+</html>

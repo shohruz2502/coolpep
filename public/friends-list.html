@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Друзья</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель */
+        .top-bar {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #667eea;
+            letter-spacing: 1px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+        
+        .action-icon {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .action-icon:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Поиск */
+        .search-container {
+            padding: 15px 20px;
+            background: white;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 14px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        /* Основной контент */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            padding: 0 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .friends-list, .requests-list {
+            background: white;
+        }
+        
+        .friend-item, .request-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .friend-item:hover, .request-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .friend-avatar, .request-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .friend-info, .request-info {
+            flex: 1;
+        }
+        
+        .friend-name, .request-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .friend-status, .request-status {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .online {
+            color: #4cd964;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online::before {
+            content: '●';
+            font-size: 10px;
+        }
+        
+        .friend-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .friend-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .message-action {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+        
+        .message-action:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+        
+        .call-action {
+            background: rgba(76, 217, 100, 0.1);
+            color: #4cd964;
+        }
+        
+        .call-action:hover {
+            background: rgba(76, 217, 100, 0.2);
+        }
+        
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .accept-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .reject-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .empty-subtitle {
+            font-size: 14px;
+            margin-bottom: 20px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+        
+        .find-friends-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .add-friend-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 90;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 480px) {
+            .friend-item, .request-item {
+                padding: 12px 15px;
+            }
+            
+            .friend-avatar, .request-avatar {
+                width: 45px;
+                height: 45px;
+                margin-right: 12px;
+            }
+            
+            .tabs {
+                padding: 0 15px;
+            }
+            
+            .tab {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="logo">Coolpep</div>
+        
+        <div class="header-actions">
+            <div class="action-icon" title="Новый чат" onclick="newChat()">💬</div>
+            <div class="action-icon" title="Настройки" onclick="openSettings()">⚙️</div>
+            <div class="user-avatar" id="userAvatar" title="Профиль" onclick="window.location.href='#'">А</div>
+        </div>
+    </div>
+    
+    <!-- Поиск -->
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="Поиск друзей, сообщений...">
+    </div>
+    
+    <!-- Вкладки -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('friends')">Друзья (12)</div>
+        <div class="tab" onclick="switchTab('requests')">Запросы (3)</div>
+        <div class="tab" onclick="switchTab('anonymous')">Анонимные</div>
+    </div>
+    
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Вкладка Друзья -->
+        <div class="tab-content active" id="friendsTab">
+            <div class="friends-list" id="friendsList">
+                <!-- Друзья будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- Вкладка Запросы -->
+        <div class="tab-content" id="requestsTab">
+            <div class="requests-list" id="requestsList">
+                <!-- Запросы будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- Вкладка Анонимные -->
+        <div class="tab-content" id="anonymousTab">
+            <div class="empty-state">
+                <div class="empty-icon">🎭</div>
+                <h3 class="empty-title">Анонимные чаты</h3>
+                <p class="empty-subtitle">
+                    Общайтесь анонимно с друзьями. Начните новый анонимный чат или выберите существующий.
+                </p>
+                <button class="find-friends-btn" onclick="window.location.href='chat-anonymous.html'">
+                    Начать анонимный чат
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Кнопка добавления друга -->
+    <button class="add-friend-btn" onclick="addFriend()">+</button>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item active">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Данные для демонстрации
+        const friendsData = [
+            { id: 1, name: "Иван Петров", initial: "ИП", status: "online", lastSeen: "Только что" },
+            { id: 2, name: "Анна Сидорова", initial: "АС", status: "online", lastSeen: "2 мин назад" },
+            { id: 3, name: "Дмитрий Козлов", initial: "ДК", status: "offline", lastSeen: "В сети 5 часов назад" },
+            { id: 4, name: "Мария Волкова", initial: "МВ", status: "online", lastSeen: "Онлайн" },
+            { id: 5, name: "Алексей Новиков", initial: "АН", status: "offline", lastSeen: "В сети вчера" },
+            { id: 6, name: "Елена Смирнова", initial: "ЕС", status: "online", lastSeen: "Только что" },
+            { id: 7, name: "Сергей Иванов", initial: "СИ", status: "offline", lastSeen: "В сети 3 дня назад" },
+            { id: 8, name: "Ольга Кузнецова", initial: "ОК", status: "online", lastSeen: "10 мин назад" }
+        ];
+        
+        const requestsData = [
+            { id: 1, name: "Павел Соколов", initial: "ПС", mutual: "5 общих друзей" },
+            { id: 2, name: "Татьяна Михайлова", initial: "ТМ", mutual: "2 общих друга" },
+            { id: 3, name: "Николай Федоров", initial: "НФ", mutual: "Общее сообщество" }
+        ];
+        
+        // Загрузка данных пользователя
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Инициалы для аватарки
+            if (userData.name) {
+                const firstLetter = userData.name.charAt(0);
+                const secondLetter = userData.surname ? userData.surname.charAt(0) : '';
+                document.getElementById('userAvatar').textContent = firstLetter + secondLetter;
+            }
+            
+            // Загрузка списка друзей
+            loadFriends();
+            
+            // Загрузка запросов в друзья
+            loadRequests();
+            
+            // Поиск
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                filterFriends(searchTerm);
+            });
+        });
+        
+        function loadFriends() {
+            const friendsList = document.getElementById('friendsList');
+            friendsList.innerHTML = '';
+            
+            friendsData.forEach(friend => {
+                const friendItem = document.createElement('div');
+                friendItem.className = 'friend-item';
+                friendItem.onclick = () => openChat(friend.id);
+                
+                friendItem.innerHTML = `
+                    <div class="friend-avatar">${friend.initial}</div>
+                    <div class="friend-info">
+                        <div class="friend-name">${friend.name}</div>
+                        <div class="friend-status ${friend.status === 'online' ? 'online' : ''}">
+                            ${friend.status === 'online' ? 'В сети' : friend.lastSeen}
+                        </div>
+                    </div>
+                    <div class="friend-actions">
+                        <div class="friend-action message-action" onclick="event.stopPropagation(); openChat(${friend.id})" title="Написать">
+                            💬
+                        </div>
+                        <div class="friend-action call-action" onclick="event.stopPropagation(); callFriend(${friend.id})" title="Позвонить">
+                            📞
+                        </div>
+                    </div>
+                `;
+                
+                friendsList.appendChild(friendItem);
+            });
+        }
+        
+        function loadRequests() {
+            const requestsList = document.getElementById('requestsList');
+            requestsList.innerHTML = '';
+            
+            if (requestsData.length === 0) {
+                requestsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👋</div>
+                        <h3 class="empty-title">Нет запросов в друзья</h3>
+                        <p class="empty-subtitle">
+                            Когда кто-то отправит вам запрос в друзья, он появится здесь
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            requestsData.forEach(request => {
+                const requestItem = document.createElement('div');
+                requestItem.className = 'request-item';
+                
+                requestItem.innerHTML = `
+                    <div class="request-avatar">${request.initial}</div>
+                    <div class="request-info">
+                        <div class="request-name">${request.name}</div>
+                        <div class="request-status">${request.mutual}</div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="accept-btn" onclick="acceptRequest(${request.id})">Принять</button>
+                        <button class="reject-btn" onclick="rejectRequest(${request.id})">Отклонить</button>
+                    </div>
+                `;
+                
+                requestsList.appendChild(requestItem);
+            });
+        }
+        
+        function switchTab(tabName) {
+            // Обновление активной вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Показать соответствующий контент
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+        
+        function filterFriends(searchTerm) {
+            const friendItems = document.querySelectorAll('.friend-item');
+            let visibleCount = 0;
+            
+            friendItems.forEach(item => {
+                const friendName = item.querySelector('.friend-name').textContent.toLowerCase();
+                if (friendName.includes(searchTerm) || searchTerm === '') {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Показать состояние "не найдено"
+            if (visibleCount === 0 && searchTerm !== '') {
+                document.getElementById('friendsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Ничего не найдено</h3>
+                        <p class="empty-subtitle">
+                            Попробуйте изменить запрос или проверьте правильность ввода
+                        </p>
+                    </div>
+                `;
+            } else if (searchTerm === '') {
+                loadFriends();
+            }
+        }
+        
+        function openChat(friendId) {
+            // Сохраняем выбранного друга в localStorage для использования в чате
+            const friend = friendsData.find(f => f.id === friendId);
+            if (friend) {
+                localStorage.setItem('current_chat_friend', JSON.stringify(friend));
+                window.location.href = 'chat-personal.html';
+            }
+        }
+        
+        function newChat() {
+            alert('Функция создания нового чата. В полной версии здесь будет форма выбора контакта.');
+        }
+        
+        function openSettings() {
+            alert('Настройки друзей. В полной версии здесь будут настройки приватности и уведомлений.');
+        }
+        
+        function addFriend() {
+            const friendName = prompt('Введите имя или номер телефона пользователя:');
+            if (friendName) {
+                alert(`Запрос в друзья отправлен пользователю: ${friendName}`);
+            }
+        }
+        
+        function callFriend(friendId) {
+            const friend = friendsData.find(f => f.id === friendId);
+            if (friend) {
+                alert(`Звонок пользователю: ${friend.name}`);
+            }
+        }
+        
+        function acceptRequest(requestId) {
+            const request = requestsData.find(r => r.id === requestId);
+            if (request) {
+                alert(`Запрос от ${request.name} принят!`);
+                // Удаляем запрос из списка
+                const index = requestsData.findIndex(r => r.id === requestId);
+                if (index > -1) {
+                    requestsData.splice(index, 1);
+                    loadRequests();
+                    
+                    // Обновляем счетчик на вкладке
+                    const tab = document.querySelector('.tab:nth-child(2)');
+                    tab.textContent = `Запросы (${requestsData.length})`;
+                }
+            }
+        }
+        
+        function rejectRequest(requestId) {
+            const request = requestsData.find(r => r.id === requestId);
+            if (request) {
+                alert(`Запрос от ${request.name} отклонен.`);
+                // Удаляем запрос из списка
+                const index = requestsData.findIndex(r => r.id === requestId);
+                if (index > -1) {
+                    requestsData.splice(index, 1);
+                    loadRequests();
+                    
+                    // Обновляем счетчик на вкладке
+                    const tab = document.querySelector('.tab:nth-child(2)');
+                    tab.textContent = `Запросы (${requestsData.length})`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

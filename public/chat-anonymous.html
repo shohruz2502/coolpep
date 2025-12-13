@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Анонимный чат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+        
+        /* Верхняя панель чата */
+        .chat-header {
+            background: rgba(26, 26, 46, 0.95);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .back-button {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .anonymous-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .chat-info {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .chat-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+        
+        .chat-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-action {
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .header-action:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Предупреждение об анонимности */
+        .warning-banner {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            margin: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .warning-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .warning-text {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.5;
+        }
+        
+        /* Область сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message-date {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .message-date::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            z-index: 1;
+        }
+        
+        .message-date span {
+            background: #16213e;
+            padding: 0 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .message {
+            max-width: 75%;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .anonymous-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 100%;
+        }
+        
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .message.incoming .message-bubble {
+            background: rgba(255,255,255,0.1);
+            border-top-left-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        .message.outgoing .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-top-right-radius: 5px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            align-self: flex-end;
+        }
+        
+        .message.outgoing .message-time {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .sender-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 2px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Панель ввода сообщения */
+        .input-container {
+            background: rgba(26, 26, 46, 0.95);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-action {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .input-action:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255,255,255,0.08);
+        }
+        
+        .message-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-button:disabled {
+            background: rgba(255,255,255,0.1);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Настройки анонимности */
+        .settings-panel {
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 15px;
+            margin: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+        
+        .settings-panel.active {
+            display: block;
+        }
+        
+        .settings-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background: #667eea;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .identity-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .identity-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .identity-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .identity-option.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+        
+        .identity-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .identity-name {
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        /* Индикатор печати */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 18px;
+            width: fit-content;
+            margin-bottom: 10px;
+            align-self: flex-start;
+            backdrop-filter: blur(10px);
+        }
+        
+        .typing-indicator.active {
+            display: flex;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Шифрование статус */
+        .encryption-status {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.9);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 90;
+        }
+        
+        .lock-icon {
+            color: #4cd964;
+            font-size: 14px;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: rgba(26, 26, 46, 0.95);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.2);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .input-container {
+                padding: 12px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .warning-banner {
+                margin: 10px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="chat-header">
+        <button class="back-button" onclick="window.location.href='friends-list.html'">←</button>
+        
+        <div class="chat-info">
+            <div class="chat-title">Анонимный чат</div>
+            <div class="chat-subtitle">Соединение установлено • Шифрование активно</div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="header-action" title="Настройки анонимности" onclick="toggleSettings()">⚙️</div>
+            <div class="anonymous-badge">👤 АНОН</div>
+        </div>
+    </div>
+    
+    <!-- Предупреждение -->
+    <div class="warning-banner">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-text">
+            Вы общаетесь анонимно. Ваша личность скрыта. Сообщения не могут быть сохранены или пересланы.
+        </div>
+    </div>
+    
+    <!-- Панель настроек -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-title">Настройки анонимности</div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Случайный аватар</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="randomAvatar" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Имя отправителя</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="showSender" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Самоуничтожение</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="selfDestruct">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Выберите личность</div>
+        </div>
+        
+        <div class="identity-selector" id="identitySelector">
+            <div class="identity-option active" data-avatar="👤" data-name="Аноним 1">
+                <div class="identity-icon">👤</div>
+                <div class="identity-name">Нейтральный</div>
+            </div>
+            <div class="identity-option" data-avatar="🎭" data-name="Аноним 2">
+                <div class="identity-icon">🎭</div>
+                <div class="identity-name">Маска</div>
+            </div>
+            <div class="identity-option" data-avatar="🕵️" data-name="Аноним 3">
+                <div class="identity-icon">🕵️</div>
+                <div class="identity-name">Детектив</div>
+            </div>
+            <div class="identity-option" data-avatar="👻" data-name="Аноним 4">
+                <div class="identity-icon">👻</div>
+                <div class="identity-name">Призрак</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Область сообщений -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-date">
+            <span>Сегодня 20:00</span>
+        </div>
+        
+        <!-- Сообщения будут добавлены через JS -->
+        
+        <!-- Индикатор печати -->
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span style="font-size: 12px; color: rgba(255,255,255,0.7);">кто-то печатает...</span>
+        </div>
+    </div>
+    
+    <!-- Статус шифрования -->
+    <div class="encryption-status">
+        <span class="lock-icon">🔒</span>
+        <span>Сообщения зашифрованы</span>
+    </div>
+    
+    <!-- Панель ввода -->
+    <div class="input-container">
+        <div class="input-actions">
+            <button class="input-action" onclick="sendRandomMessage()">🎲</button>
+            <button class="input-action" onclick="sendAnonymousQuestion()">❓</button>
+        </div>
+        
+        <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Введите анонимное сообщение..." 
+            rows="1"
+            oninput="autoResize(this)"
+            onkeypress="handleKeyPress(event)"
+        ></textarea>
+        
+        <button class="send-button" id="sendButton" onclick="sendMessage()">➤</button>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="chat-anonymous.html" class="nav-item active">
+            <div class="nav-icon">🎭</div>
+            <div class="nav-label">АНОН</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Настройки анонимности
+        let anonymousSettings = {
+            currentIdentity: { avatar: '👤', name: 'Аноним 1' },
+            randomAvatar: true,
+            showSender: true,
+            selfDestruct: false
+        };
+        
+        // История сообщений
+        let messages = [
+            { id: 1, text: "Привет! Это анонимный чат.", sender: "incoming", time: "20:01", avatar: "👻", name: "Незнакомец" },
+            { id: 2, text: "Здравствуйте! Как работает анонимность здесь?", sender: "user", time: "20:02", avatar: "👤", name: "Аноним 1" },
+            { id: 3, text: "Ваша личность полностью скрыта. Можно выбрать разные аватары и имена.", sender: "incoming", time: "20:03", avatar: "🕵️", name: "Детектив" },
+            { id: 4, text: "Круто! А сообщения шифруются?", sender: "user", time: "20:04", avatar: "👤", name: "Аноним 1" },
+            { id: 5, text: "Да, все сообщения зашифрованы и удаляются после завершения чата.", sender: "incoming", time: "20:05", avatar: "🎭", name: "Маска" }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка сообщений
+            renderMessages();
+            
+            // Настройка выбора личности
+            setupIdentitySelector();
+            
+            // Настройка переключателей
+            setupToggleSwitches();
+            
+            // Автоскролл вниз
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+            
+            // Случайное появление "печатает..." для демо
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    showTypingIndicator();
+                    setTimeout(hideTypingIndicator, 2000 + Math.random() * 3000);
+                }
+            }, 8000);
+            
+            // Случайные входящие сообщения для демо
+            setInterval(() => {
+                if (Math.random() > 0.8 && messages.length < 15) {
+                    sendRandomIncomingMessage();
+                }
+            }, 15000);
+        });
+        
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Очищаем контейнер кроме первого элемента (дата) и индикатора печати
+            const childrenToRemove = [];
+            for (let i = 0; i < container.children.length; i++) {
+                const child = container.children[i];
+                if (!child.classList.contains('message-date') && !child.id === 'typingIndicator') {
+                    childrenToRemove.push(child);
+                }
+            }
+            childrenToRemove.forEach(child => child.remove());
+            
+            // Добавляем сообщения
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.sender}`;
+                
+                // Определяем аватар и имя отправителя
+                let avatar = msg.avatar;
+                let name = msg.name;
+                
+                if (msg.sender === 'user') {
+                    avatar = anonymousSettings.currentIdentity.avatar;
+                    name = anonymousSettings.currentIdentity.name;
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="anonymous-avatar">${avatar}</div>
+                    <div class="message-content">
+                        ${anonymousSettings.showSender && msg.sender === 'incoming' ? 
+                          `<div class="sender-label">${name}</div>` : ''}
+                        <div class="message-bubble">${msg.text}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                
+                // Вставляем перед индикатором печати
+                const typingIndicator = document.getElementById('typingIndicator');
+                container.insertBefore(messageDiv, typingIndicator);
+            });
+            
+            // Автоскролл вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function setupIdentitySelector() {
+            const options = document.querySelectorAll('.identity-option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Убираем активный класс у всех
+                    options.forEach(opt => opt.classList.remove('active'));
+                    // Добавляем активный класс текущему
+                    this.classList.add('active');
+                    
+                    // Обновляем настройки
+                    anonymousSettings.currentIdentity = {
+                        avatar: this.dataset.avatar,
+                        name: this.dataset.name
+                    };
+                    
+                    // Перерисовываем сообщения пользователя
+                    renderMessages();
+                });
+            });
+        }
+        
+        function setupToggleSwitches() {
+            document.getElementById('randomAvatar').addEventListener('change', function() {
+                anonymousSettings.randomAvatar = this.checked;
+            });
+            
+            document.getElementById('showSender').addEventListener('change', function() {
+                anonymousSettings.showSender = this.checked;
+                renderMessages();
+            });
+            
+            document.getElementById('selfDestruct').addEventListener('change', function() {
+                anonymousSettings.selfDestruct = this.checked;
+                if (this.checked) {
+                    alert('Сообщения будут самоуничтожаться через 24 часа');
+                }
+            });
+        }
+        
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('active');
+        }
+        
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Показываем индикатор печати
+            if (textarea.value.length > 0) {
+                showTypingIndicator();
+            } else {
+                hideTypingIndicator();
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText) {
+                // Добавляем новое сообщение
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+                
+                const newMessage = {
+                    id: messages.length + 1,
+                    text: messageText,
+                    sender: 'user',
+                    time: time,
+                    avatar: anonymousSettings.currentIdentity.avatar,
+                    name: anonymousSettings.currentIdentity.name
+                };
+                
+                messages.push(newMessage);
+                renderMessages();
+                
+                // Очищаем поле ввода
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Скрываем индикатор печати
+                hideTypingIndicator();
+                
+                // Имитация ответа (через 1-3 секунды)
+                setTimeout(() => {
+                    const replies = [
+                        "Интересно...",
+                        "Расскажи подробнее?",
+                        "Согласен!",
+                        "Хмм, не думал об этом",
+                        "Анонимность - это сила!",
+                        "🔒",
+                        "Шифрование работает отлично",
+                        "Продолжай..."
+                    ];
+                    
+                    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                    const randomAvatar = ['👻', '🕵️', '🎭', '👤'][Math.floor(Math.random() * 4)];
+                    const randomName = ['Незнакомец', 'Аноним', 'Гость', 'Посетитель'][Math.floor(Math.random() * 4)];
+                    
+                    const replyTime = new Date();
+                    const replyTimeStr = replyTime.getHours().toString().padStart(2, '0') + ':' + 
+                                      replyTime.getMinutes().toString().padStart(2, '0');
+                    
+                    const replyMessage = {
+                        id: messages.length + 1,
+                        text: randomReply,
+                        sender: 'incoming',
+                        time: replyTimeStr,
+                        avatar: randomAvatar,
+                        name: randomName
+                    };
+                    
+                    messages.push(replyMessage);
+                    renderMessages();
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function sendRandomMessage() {
+            const randomMessages = [
+                "Что думаешь об анонимности в интернете?",
+                "Сегодня отличный день для анонимного общения!",
+                "Шифрование - наше все!",
+                "Какой твой любимый способ оставаться анонимным?",
+                "🔐",
+                "Анонимность дает свободу слова",
+                "Тут безопасно, можно говорить правду",
+                "Кто здесь? 😄"
+            ];
+            
+            const input = document.getElementById('messageInput');
+            input.value = randomMessages[Math.floor(Math.random() * randomMessages.length)];
+            autoResize(input);
+            input.focus();
+        }
+        
+        function sendAnonymousQuestion() {
+            const questions = [
+                "Какой самый анонимный мессенджер?",
+                "Зачем нужна анонимность в сети?",
+                "Что такое VPN и как он работает?",
+                "Как защитить свои данные?",
+                "Тор vs обычный браузер - в чем разница?"
+            ];
+            
+            const input = document.getElementById('messageInput');
+            input.value = questions[Math.floor(Math.random() * questions.length)];
+            autoResize(input);
+            input.focus();
+        }
+        
+        function sendRandomIncomingMessage() {
+            const incomingMessages = [
+                "Кто-нибудь здесь?",
+                "Привет всем анонимам!",
+                "Как ваши дела?",
+                "Люблю эту анонимность!",
+                "Шифрование работает на ура!",
+                "Можно задать вопрос?",
+                "Какая сегодня тема для общения?",
+                "🔒 Все сообщения защищены"
+            ];
+            
+            const randomAvatar = ['👻', '🕵️', '🎭', '👤'][Math.floor(Math.random() * 4)];
+            const randomName = ['Незнакомец', 'Аноним', 'Гость', 'Посетитель'][Math.floor(Math.random() * 4)];
+            
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            const newMessage = {
+                id: messages.length + 1,
+                text: incomingMessages[Math.floor(Math.random() * incomingMessages.length)],
+                sender: 'incoming',
+                time: time,
+                avatar: randomAvatar,
+                name: randomName
+            };
+            
+            messages.push(newMessage);
+            renderMessages();
+        }
+        
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('active');
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+        
+        // Закрытие панели настроек при клике вне ее
+        document.addEventListener('click', function(event) {
+            const settingsPanel = document.getElementById('settingsPanel');
+            const settingsButton = document.querySelector('.header-action');
+            
+            if (!settingsPanel.contains(event.target) && 
+                !settingsButton.contains(event.target) && 
+                settingsPanel.classList.contains('active')) {
+                settingsPanel.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

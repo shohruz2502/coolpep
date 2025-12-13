@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Подтверждение</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .phone-display {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .code-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .code-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .code-input.filled {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .timer {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .timer span {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .resend-button {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .resend-button:disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .verify-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .verify-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .error-message {
+            color: #ff4757;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 22px;
+            }
+            
+            .code-input {
+                width: 45px;
+                height: 55px;
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" onclick="window.location.href='auth-phone.html'">←</button>
+        <div class="logo">Coolpep</div>
+    </div>
+    
+    <div class="container">
+        <div class="auth-card">
+            <h1 class="title">Подтверждение номера</h1>
+            <p class="subtitle">Введите 4-значный код, отправленный на номер:</p>
+            
+            <div class="phone-display" id="phoneDisplay">
+                +7 900 123 45 67
+            </div>
+            
+            <div class="code-container">
+                <input type="text" class="code-input" maxlength="1" data-index="0">
+                <input type="text" class="code-input" maxlength="1" data-index="1">
+                <input type="text" class="code-input" maxlength="1" data-index="2">
+                <input type="text" class="code-input" maxlength="1" data-index="3">
+            </div>
+            
+            <div class="timer" id="timer">
+                Отправить код повторно через: <span id="time">59</span> сек
+            </div>
+            
+            <button class="resend-button" id="resendBtn" disabled onclick="resendCode()">
+                Отправить код повторно
+            </button>
+            
+            <button class="verify-button" id="verifyBtn" onclick="verifyCode()">
+                Подтвердить
+            </button>
+            
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+    
+    <script>
+        const codeInputs = document.querySelectorAll('.code-input');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resendBtn = document.getElementById('resendBtn');
+        const timerElement = document.getElementById('time');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        let timer = 59;
+        let countdown;
+        
+        // Автофокус и перемещение между полями
+        codeInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                    // Заполнение текущего поля
+                    e.target.classList.add('filled');
+                    
+                    // Переход к следующему полю
+                    if (index < codeInputs.length - 1) {
+                        codeInputs[index + 1].focus();
+                    }
+                } else if (e.target.value.length === 0) {
+                    e.target.classList.remove('filled');
+                }
+                
+                checkCodeComplete();
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value.length === 0) {
+                    // Переход к предыдущему полю при удалении
+                    if (index > 0) {
+                        codeInputs[index - 1].focus();
+                        codeInputs[index - 1].value = '';
+                        codeInputs[index - 1].classList.remove('filled');
+                    }
+                }
+            });
+        });
+        
+        function checkCodeComplete() {
+            const code = Array.from(codeInputs).map(input => input.value).join('');
+            verifyBtn.disabled = code.length !== 4;
+            
+            if (code.length === 4 && code !== '1234') {
+                errorMessage.textContent = 'Неверный код. Попробуйте снова.';
+                codeInputs.forEach(input => {
+                    input.style.borderColor = '#ff4757';
+                });
+            } else {
+                errorMessage.textContent = '';
+                codeInputs.forEach(input => {
+                    if (input.classList.contains('filled')) {
+                        input.style.borderColor = '#667eea';
+                    }
+                });
+            }
+        }
+        
+        function verifyCode() {
+            const code = Array.from(codeInputs).map(input => input.value).join('');
+            
+            // Имитация проверки кода
+            if (code === '1234') {
+                alert('Код подтвержден!');
+                window.location.href = 'profile-setup.html';
+            } else {
+                errorMessage.textContent = 'Неверный код. Попробуйте 1234';
+                // Сброс полей
+                codeInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('filled');
+                    input.style.borderColor = '#ff4757';
+                });
+                codeInputs[0].focus();
+            }
+        }
+        
+        // Таймер для повторной отправки
+        function startTimer() {
+            countdown = setInterval(() => {
+                timer--;
+                timerElement.textContent = timer;
+                
+                if (timer <= 0) {
+                    clearInterval(countdown);
+                    resendBtn.disabled = false;
+                    document.querySelector('.timer').innerHTML = 'Код можно отправить повторно';
+                }
+            }, 1000);
+        }
+        
+        function resendCode() {
+            alert('Новый код отправлен!');
+            timer = 59;
+            resendBtn.disabled = true;
+            timerElement.textContent = timer;
+            document.querySelector('.timer').innerHTML = 
+                `Отправить код повторно через: <span id="time">${timer}</span> сек`;
+            startTimer();
+        }
+        
+        // Фокус на первое поле при загрузке
+        codeInputs[0].focus();
+        
+        // Запуск таймера
+        startTimer();
+        
+        // Имитация номера телефона из предыдущей страницы
+        const urlParams = new URLSearchParams(window.location.search);
+        const phone = urlParams.get('phone') || '+7 900 123 45 67';
+        document.getElementById('phoneDisplay').textContent = phone;
+    </script>
+</body>
+</html>

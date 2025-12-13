@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Чат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель чата */
+        .chat-header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .chat-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .chat-status {
+            font-size: 13px;
+            color: #4cd964;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .chat-status::before {
+            content: '●';
+            font-size: 10px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .header-action {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .header-action:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Область сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f5f7fa;
+        }
+        
+        .message-date {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .message-date::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #eee;
+            z-index: 1;
+        }
+        
+        .message-date span {
+            background: #f5f7fa;
+            padding: 0 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .message {
+            max-width: 70%;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+        
+        .message.incoming .message-bubble {
+            background: white;
+            border-top-left-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .message.outgoing .message-bubble {
+            background: #667eea;
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            align-self: flex-end;
+        }
+        
+        .message.outgoing .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .message-actions {
+            display: none;
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        .message:hover .message-actions {
+            display: block;
+        }
+        
+        .message-action {
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #333;
+            transition: background 0.2s;
+        }
+        
+        .message-action:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Панель ввода сообщения */
+        .input-container {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-action {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #667eea;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .input-action:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .message-input[disabled] {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .send-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Эмодзи и вложения */
+        .emoji-picker, .attachment-picker {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            padding: 15px;
+            z-index: 1000;
+        }
+        
+        .emoji-picker.active, .attachment-picker.active {
+            display: block;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .emoji {
+            font-size: 20px;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+        
+        .emoji:hover {
+            background: #f8f9fa;
+        }
+        
+        .attachment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+        
+        .attachment-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.2s;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .attachment-option:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            align-self: flex-start;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Анонимный режим */
+        .anonymous-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            align-self: flex-start;
+            cursor: pointer;
+        }
+        
+        .anonymous-toggle input {
+            display: none;
+        }
+        
+        .toggle-slider {
+            width: 40px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            position: relative;
+            transition: background 0.3s;
+        }
+        
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        
+        .anonymous-toggle input:checked + .toggle-slider {
+            background: #667eea;
+        }
+        
+        .anonymous-toggle input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+        
+        .anonymous-label {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .input-container {
+                padding: 12px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="chat-header">
+        <button class="back-button" onclick="window.location.href='friends-list.html'">←</button>
+        
+        <div class="chat-avatar" id="friendAvatar">ИП</div>
+        
+        <div class="chat-info">
+            <div class="chat-name" id="friendName">Иван Петров</div>
+            <div class="chat-status" id="friendStatus">В сети</div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="header-action" title="Позвонить" onclick="makeCall()">📞</div>
+            <div class="header-action" title="Информация" onclick="showChatInfo()">ⓘ</div>
+        </div>
+    </div>
+    
+    <!-- Область сообщений -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-date">
+            <span>Сегодня</span>
+        </div>
+        
+        <!-- Сообщения будут добавлены через JS -->
+        
+        <!-- Индикатор набора текста -->
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span style="font-size: 12px; color: #666;">печатает...</span>
+        </div>
+    </div>
+    
+    <!-- Панель ввода -->
+    <div class="input-container">
+        <div class="input-actions">
+            <button class="input-action" onclick="toggleEmojiPicker()">😊</button>
+            <button class="input-action" onclick="toggleAttachmentPicker()">📎</button>
+        </div>
+        
+        <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Введите сообщение..." 
+            rows="1"
+            oninput="autoResize(this)"
+            onkeypress="handleKeyPress(event)"
+        ></textarea>
+        
+        <button class="send-button" id="sendButton" onclick="sendMessage()">➤</button>
+    </div>
+    
+    <!-- Эмодзи панель -->
+    <div class="emoji-picker" id="emojiPicker">
+        <div class="emoji-grid" id="emojiGrid">
+            <!-- Эмодзи будут добавлены через JS -->
+        </div>
+    </div>
+    
+    <!-- Панель вложений -->
+    <div class="attachment-picker" id="attachmentPicker">
+        <div class="attachment-options">
+            <button class="attachment-option" onclick="attachPhoto()">
+                <span style="font-size: 20px;">📷</span>
+                Фото или видео
+            </button>
+            <button class="attachment-option" onclick="attachDocument()">
+                <span style="font-size: 20px;">📄</span>
+                Документ
+            </button>
+            <button class="attachment-option" onclick="attachLocation()">
+                <span style="font-size: 20px;">📍</span>
+                Местоположение
+            </button>
+            <button class="attachment-option" onclick="attachContact()">
+                <span style="font-size: 20px;">👤</span>
+                Контакт
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация данных чата
+        let chatData = {
+            friend: {},
+            messages: [],
+            isAnonymous: false,
+            isTyping: false
+        };
+        
+        // Эмодзи для панели
+        const emojis = ['😀', '😂', '🥰', '😎', '🤔', '😭', '😡', '🤢', '😴', '😇', 
+                       '🤠', '🥳', '😈', '👻', '💀', '🤖', '👽', '👾', '🙈', '🙉',
+                       '💖', '💔', '💣', '💥', '👋', '👍', '👎', '✌️', '🤞', '🤙',
+                       '🎉', '🎊', '🎁', '🎈', '🏆', '⚽', '🎮', '🎬', '🎵', '🎸',
+                       '🚀', '✈️', '🚗', '🚲', '🏠', '🏢', '🌍', '🌞', '🌈', '🔥'];
+        
+        // Сообщения для демо
+        const demoMessages = [
+            { id: 1, text: "Привет! Как дела?", sender: "friend", time: "10:30" },
+            { id: 2, text: "Привет! Все отлично, только что закончил проект 🎉", sender: "user", time: "10:32" },
+            { id: 3, text: "Круто! А какой проект?", sender: "friend", time: "10:33" },
+            { id: 4, text: "Социальное приложение с системой сообществ и анонимными чатами", sender: "user", time: "10:35" },
+            { id: 5, text: "Звучит интересно! Покажешь?", sender: "friend", time: "10:36" },
+            { id: 6, text: "Конечно, могу даже демо-доступ дать для тестирования", sender: "user", time: "10:37" },
+            { id: 7, text: "Было бы супер! 😊", sender: "friend", time: "10:38" }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка данных пользователя
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Загрузка данных друга
+            const savedFriend = localStorage.getItem('current_chat_friend');
+            if (savedFriend) {
+                chatData.friend = JSON.parse(savedFriend);
+                document.getElementById('friendName').textContent = chatData.friend.name;
+                document.getElementById('friendAvatar').textContent = chatData.friend.initial;
+            } else {
+                // Дефолтный друг для демо
+                chatData.friend = { name: "Иван Петров", initial: "ИП" };
+            }
+            
+            // Загрузка сообщений
+            chatData.messages = [...demoMessages];
+            renderMessages();
+            
+            // Инициализация эмодзи панели
+            initEmojiPicker();
+            
+            // Настройка автоскролла
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+            
+            // Случайное появление "печатает..." для демо
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    showTypingIndicator();
+                    setTimeout(hideTypingIndicator, 2000 + Math.random() * 3000);
+                }
+            }, 10000);
+        });
+        
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Очищаем контейнер кроме первого элемента (дата)
+            while (container.children.length > 1) {
+                if (container.lastChild.id !== 'typingIndicator') {
+                    container.removeChild(container.lastChild);
+                }
+            }
+            
+            // Добавляем сообщения
+            chatData.messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.sender === 'user' ? 'outgoing' : 'incoming'}`;
+                
+                const avatar = msg.sender === 'user' 
+                    ? (chatData.isAnonymous ? '👤' : (userData.name ? userData.name.charAt(0) : 'Я'))
+                    : chatData.friend.initial;
+                    
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">${avatar}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">${msg.text}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                    <div class="message-actions">
+                        <button class="message-action" onclick="replyToMessage(${msg.id})">↩️ Ответить</button>
+                        <button class="message-action" onclick="deleteMessage(${msg.id})">🗑️ Удалить</button>
+                    </div>
+                `;
+                
+                // Вставляем перед индикатором печати
+                const typingIndicator = document.getElementById('typingIndicator');
+                container.insertBefore(messageDiv, typingIndicator);
+            });
+            
+            // Автоскролл вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Показываем индикатор набора текста у друга
+            if (textarea.value.length > 0 && !chatData.isTyping) {
+                chatData.isTyping = true;
+                setTimeout(() => {
+                    if (chatData.isTyping) {
+                        showTypingIndicator();
+                    }
+                }, 1000);
+            } else if (textarea.value.length === 0) {
+                chatData.isTyping = false;
+                hideTypingIndicator();
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText) {
+                // Добавляем новое сообщение
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+                
+                const newMessage = {
+                    id: chatData.messages.length + 1,
+                    text: messageText,
+                    sender: 'user',
+                    time: time
+                };
+                
+                chatData.messages.push(newMessage);
+                renderMessages();
+                
+                // Очищаем поле ввода
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Скрываем индикатор печати
+                chatData.isTyping = false;
+                hideTypingIndicator();
+                
+                // Имитация ответа друга (через 1-3 секунды)
+                setTimeout(() => {
+                    const replies = [
+                        "Понял!",
+                        "Интересно...",
+                        "А подробнее?",
+                        "Круто! 👍",
+                        "Спасибо за информацию!",
+                        "Жду продолжения!",
+                        "😊",
+                        "Хорошо, договорились!"
+                    ];
+                    
+                    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                    const replyTime = new Date();
+                    const replyTimeStr = replyTime.getHours().toString().padStart(2, '0') + ':' + 
+                                      replyTime.getMinutes().toString().padStart(2, '0');
+                    
+                    const replyMessage = {
+                        id: chatData.messages.length + 1,
+                        text: randomReply,
+                        sender: 'friend',
+                        time: replyTimeStr
+                    };
+                    
+                    chatData.messages.push(replyMessage);
+                    renderMessages();
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function initEmojiPicker() {
+            const emojiGrid = document.getElementById('emojiGrid');
+            emojis.forEach(emoji => {
+                const emojiDiv = document.createElement('div');
+                emojiDiv.className = 'emoji';
+                emojiDiv.textContent = emoji;
+                emojiDiv.onclick = () => insertEmoji(emoji);
+                emojiGrid.appendChild(emojiDiv);
+            });
+        }
+        
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            const cursorPos = input.selectionStart;
+            const textBefore = input.value.substring(0, cursorPos);
+            const textAfter = input.value.substring(cursorPos);
+            
+            input.value = textBefore + emoji + textAfter;
+            input.focus();
+            input.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+            autoResize(input);
+            
+            // Закрываем панель эмодзи
+            toggleEmojiPicker();
+        }
+        
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            const isActive = picker.classList.contains('active');
+            
+            // Закрываем другую панель если открыта
+            document.getElementById('attachmentPicker').classList.remove('active');
+            
+            if (isActive) {
+                picker.classList.remove('active');
+            } else {
+                picker.classList.add('active');
+                // Позиционируем панель
+                picker.style.left = '60px';
+                picker.style.right = 'auto';
+            }
+        }
+        
+        function toggleAttachmentPicker() {
+            const picker = document.getElementById('attachmentPicker');
+            const isActive = picker.classList.contains('active');
+            
+            // Закрываем другую панель если открыта
+            document.getElementById('emojiPicker').classList.remove('active');
+            
+            if (isActive) {
+                picker.classList.remove('active');
+            } else {
+                picker.classList.add('active');
+                // Позиционируем панель
+                picker.style.left = '60px';
+                picker.style.right = 'auto';
+            }
+        }
+        
+        function attachPhoto() {
+            alert('В полной версии здесь будет выбор фото/видео из галереи или камеры');
+            toggleAttachmentPicker();
+        }
+        
+        function attachDocument() {
+            alert('В полной версии здесь будет выбор документа');
+            toggleAttachmentPicker();
+        }
+        
+        function attachLocation() {
+            alert('В полной версии здесь будет карта для выбора местоположения');
+            toggleAttachmentPicker();
+        }
+        
+        function attachContact() {
+            alert('В полной версии здесь будет выбор контакта из списка');
+            toggleAttachmentPicker();
+        }
+        
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        function makeCall() {
+            alert(`Звонок ${chatData.friend.name}...`);
+        }
+        
+        function showChatInfo() {
+            alert(`Информация о чате с ${chatData.friend.name}\n\nМедиафайлы: 5\nДокументы: 2\nДата создания: 01.01.2024`);
+        }
+        
+        function replyToMessage(messageId) {
+            const message = chatData.messages.find(m => m.id === messageId);
+            if (message) {
+                const input = document.getElementById('messageInput');
+                input.value = `Ответ на: "${message.text}"\n`;
+                input.focus();
+                autoResize(input);
+            }
+        }
+        
+        function deleteMessage(messageId) {
+            if (confirm('Удалить это сообщение?')) {
+                chatData.messages = chatData.messages.filter(m => m.id !== messageId);
+                renderMessages();
+            }
+        }
+        
+        // Закрытие панелей при клике вне их
+        document.addEventListener('click', function(event) {
+            const emojiPicker = document.getElementById('emojiPicker');
+            const attachmentPicker = document.getElementById('attachmentPicker');
+            const inputActions = document.querySelector('.input-actions');
+            
+            if (!emojiPicker.contains(event.target) && !event.target.closest('.input-action:nth-child(1)')) {
+                emojiPicker.classList.remove('active');
+            }
+            
+            if (!attachmentPicker.contains(event.target) && !event.target.closest('.input-action:nth-child(2)')) {
+                attachmentPicker.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

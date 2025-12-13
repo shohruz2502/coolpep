@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - VASTAPAE Лента</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель */
+        .top-bar {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #667eea;
+            letter-spacing: 1px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .tab-container {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin: 0 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px 15px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Основной контент */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 0;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .post {
+            background: white;
+            border-radius: 15px;
+            margin: 0 15px 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .post-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .post-user-info {
+            flex: 1;
+        }
+        
+        .post-user-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .post-community {
+            font-size: 13px;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .post-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .post-content {
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .post-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .post-action:hover {
+            background: #f8f9fa;
+        }
+        
+        .post-action.active {
+            color: #667eea;
+        }
+        
+        .comment-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .comment {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 10px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .comment-content {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 15px;
+            border-top-left-radius: 5px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 3px;
+            color: #333;
+        }
+        
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .comment-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .comment-input-field {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .comment-input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .comment-send {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .stories-container {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 15px;
+            margin: 15px;
+        }
+        
+        .stories-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .stories-list {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .story-item {
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .story-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 3px;
+            margin-bottom: 8px;
+        }
+        
+        .story-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .story-name {
+            font-size: 12px;
+            color: #333;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 480px) {
+            .post {
+                margin: 0 10px 10px;
+                padding: 15px;
+            }
+            
+            .tab-container {
+                max-width: 300px;
+            }
+            
+            .tab {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            
+            .stories-container {
+                margin: 10px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="logo">Coolpep</div>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('for-you')">Для вас</div>
+            <div class="tab" onclick="switchTab('following')">Подписки</div>
+            <div class="tab" onclick="switchTab('popular')">Популярное</div>
+        </div>
+        
+        <div class="user-avatar" id="userAvatar" title="Профиль" onclick="window.location.href='#'">А</div>
+    </div>
+    
+    <!-- Основной контент -->
+    <div class="content" id="contentArea">
+        <!-- Сторис -->
+        <div class="stories-container">
+            <div class="stories-title">Истории</div>
+            <div class="stories-list" id="storiesList">
+                <!-- Сторис будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- Пост 1 -->
+        <div class="post">
+            <div class="post-header">
+                <div class="post-avatar">ИП</div>
+                <div class="post-user-info">
+                    <div class="post-user-name">Иван Петров</div>
+                    <div class="post-community">Мой Университет</div>
+                    <div class="post-time">2 часа назад</div>
+                </div>
+            </div>
+            
+            <div class="post-content">
+                Только что закончил проект по веб-разработке! 🎉 3 месяца упорной работы, и вот результат - полноценное социальное приложение. Особенно горжусь системой сообществ и модерацией чатов. Кто еще из разработчиков здесь?
+            </div>
+            
+            <div class="post-image">
+                Скриншот проекта
+            </div>
+            
+            <div class="post-actions">
+                <div class="post-action" onclick="likePost(this)">
+                    <span>❤️</span>
+                    <span>42</span>
+                </div>
+                <div class="post-action" onclick="toggleComments(this)">
+                    <span>💬</span>
+                    <span>8</span>
+                </div>
+                <div class="post-action">
+                    <span>🔁</span>
+                    <span>3</span>
+                </div>
+                <div class="post-action">
+                    <span>📤</span>
+                </div>
+            </div>
+            
+            <div class="comment-section" style="display: none;">
+                <div class="comment">
+                    <div class="comment-avatar">АС</div>
+                    <div class="comment-content">
+                        <div class="comment-author">Анна Сидорова</div>
+                        <div class="comment-text">Круто! Какую технологию использовал для бэкенда?</div>
+                    </div>
+                </div>
+                
+                <div class="comment-input">
+                    <input type="text" class="comment-input-field" placeholder="Напишите комментарий...">
+                    <button class="comment-send">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Пост 2 -->
+        <div class="post">
+            <div class="post-header">
+                <div class="post-avatar">МВ</div>
+                <div class="post-user-info">
+                    <div class="post-user-name">Мария Волкова</div>
+                    <div class="post-community">Офисные будни</div>
+                    <div class="post-time">5 часов назад</div>
+                </div>
+            </div>
+            
+            <div class="post-content">
+                Сегодня на работе внедрили новую систему отчетности. Сначала все боялись, но оказалось очень удобно! Теперь меньше бумажной работы и больше времени на реальные задачи. Как у вас с автоматизацией процессов?
+            </div>
+            
+            <div class="post-actions">
+                <div class="post-action" onclick="likePost(this)">
+                    <span>❤️</span>
+                    <span>28</span>
+                </div>
+                <div class="post-action" onclick="toggleComments(this)">
+                    <span>💬</span>
+                    <span>5</span>
+                </div>
+                <div class="post-action">
+                    <span>🔁</span>
+                    <span>2</span>
+                </div>
+                <div class="post-action">
+                    <span>📤</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Пост 3 (Reels) -->
+        <div class="post">
+            <div class="post-header">
+                <div class="post-avatar">ДК</div>
+                <div class="post-user-info">
+                    <div class="post-user-name">Дмитрий Козлов</div>
+                    <div class="post-community">Reels</div>
+                    <div class="post-time">Вчера</div>
+                </div>
+            </div>
+            
+            <div class="post-content">
+                Новая музыкальная подборка на неделю! 🎵 Проверяйте в Reels. Особенно рекомендую трек #3 - будет хит сезона!
+            </div>
+            
+            <div class="post-image" style="background: linear-gradient(135deg, #ff6b6b, #ffa726); color: white;">
+                🎬 Нажмите чтобы посмотреть Reels
+            </div>
+            
+            <div class="post-actions">
+                <div class="post-action" onclick="likePost(this)">
+                    <span>❤️</span>
+                    <span>156</span>
+                </div>
+                <div class="post-action" onclick="toggleComments(this)">
+                    <span>💬</span>
+                    <span>24</span>
+                </div>
+                <div class="post-action">
+                    <span>🔁</span>
+                    <span>18</span>
+                </div>
+                <div class="post-action">
+                    <span>📤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item active">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Загрузка данных пользователя
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Инициалы для аватарки
+            if (userData.name) {
+                const firstLetter = userData.name.charAt(0);
+                const secondLetter = userData.surname ? userData.surname.charAt(0) : '';
+                document.getElementById('userAvatar').textContent = firstLetter + secondLetter;
+            }
+            
+            // Загрузка сторис
+            loadStories();
+            
+            // Обработка отправки комментариев
+            document.querySelectorAll('.comment-send').forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    if (input.value.trim()) {
+                        const commentSection = this.closest('.comment-section');
+                        const newComment = document.createElement('div');
+                        newComment.className = 'comment';
+                        newComment.innerHTML = `
+                            <div class="comment-avatar">${userData.name ? userData.name.charAt(0) : 'В'}</div>
+                            <div class="comment-content">
+                                <div class="comment-author">${userData.name || 'Вы'}</div>
+                                <div class="comment-text">${input.value}</div>
+                            </div>
+                        `;
+                        commentSection.insertBefore(newComment, this.parentElement);
+                        input.value = '';
+                        
+                        // Обновление счетчика комментариев
+                        const commentCount = this.closest('.post').querySelector('.post-action:nth-child(2) span:nth-child(2)');
+                        commentCount.textContent = parseInt(commentCount.textContent) + 1;
+                    }
+                });
+                
+                // Отправка по Enter
+                button.previousElementSibling.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        button.click();
+                    }
+                });
+            });
+        });
+        
+        function loadStories() {
+            const stories = [
+                { name: 'Иван', initial: 'И' },
+                { name: 'Анна', initial: 'А' },
+                { name: 'Дмитрий', initial: 'Д' },
+                { name: 'Мария', initial: 'М' },
+                { name: 'Алексей', initial: 'А' },
+                { name: 'Елена', initial: 'Е' },
+                { name: 'Сергей', initial: 'С' }
+            ];
+            
+            const storiesList = document.getElementById('storiesList');
+            stories.forEach(story => {
+                const storyItem = document.createElement('div');
+                storyItem.className = 'story-item';
+                storyItem.innerHTML = `
+                    <div class="story-avatar">
+                        <div class="story-inner">${story.initial}</div>
+                    </div>
+                    <div class="story-name">${story.name}</div>
+                `;
+                storiesList.appendChild(storyItem);
+            });
+        }
+        
+        function switchTab(tabName) {
+            // Обновление активной вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Здесь можно загружать разные данные для разных вкладок
+            console.log('Переключено на вкладку:', tabName);
+        }
+        
+        function likePost(button) {
+            const countElement = button.querySelector('span:nth-child(2)');
+            let count = parseInt(countElement.textContent);
+            
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+                count--;
+                button.querySelector('span:first-child').textContent = '🤍';
+            } else {
+                button.classList.add('active');
+                count++;
+                button.querySelector('span:first-child').textContent = '❤️';
+            }
+            
+            countElement.textContent = count;
+        }
+        
+        function toggleComments(button) {
+            const post = button.closest('.post');
+            const commentSection = post.querySelector('.comment-section');
+            
+            if (commentSection.style.display === 'none' || !commentSection.style.display) {
+                commentSection.style.display = 'block';
+            } else {
+                commentSection.style.display = 'none';
+            }
+        }
+        
+        // Автоподгрузка при скролле (демо)
+        let postCount = 3;
+        window.addEventListener('scroll', function() {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                if (postCount < 6) { // Ограничим количество постов для демо
+                    loadMorePosts();
+                }
+            }
+        });
+        
+        function loadMorePosts() {
+            const contentArea = document.getElementById('contentArea');
+            const newPost = document.createElement('div');
+            newPost.className = 'post';
+            newPost.innerHTML = `
+                <div class="post-header">
+                    <div class="post-avatar">НП</div>
+                    <div class="post-user-info">
+                        <div class="post-user-name">Новый Пользователь ${postCount}</div>
+                        <div class="post-community">Тестовое сообщество</div>
+                        <div class="post-time">Только что</div>
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    Это автоматически загруженный пост #${postCount + 1}. Система ленты работает отлично!
+                </div>
+                
+                <div class="post-actions">
+                    <div class="post-action" onclick="likePost(this)">
+                        <span>🤍</span>
+                        <span>0</span>
+                    </div>
+                    <div class="post-action" onclick="toggleComments(this)">
+                        <span>💬</span>
+                        <span>0</span>
+                    </div>
+                    <div class="post-action">
+                        <span>🔁</span>
+                        <span>0</span>
+                    </div>
+                    <div class="post-action">
+                        <span>📤</span>
+                    </div>
+                </div>
+            `;
+            
+            contentArea.appendChild(newPost);
+            postCount++;
+        }
+    </script>
+</body>
+</html>

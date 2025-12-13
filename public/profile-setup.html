@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Создание профиля</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 75%;
+            transition: width 0.3s;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .setup-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            margin: 0 auto 20px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #667eea;
+            cursor: pointer;
+        }
+        
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #667eea;
+        }
+        
+        .avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .avatar-container:hover .change-overlay {
+            opacity: 1;
+        }
+        
+        .change-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .avatar-hint {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .bio-input {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .counter {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .gender-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .gender-button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .gender-button:hover {
+            border-color: #667eea;
+        }
+        
+        .gender-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .complete-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .complete-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .complete-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .skip-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .skip-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .setup-card {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+            
+            .avatar-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .gender-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Coolpep</div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress"></div>
+    </div>
+    
+    <div class="container">
+        <div class="setup-card">
+            <h1 class="title">Создайте свой профиль</h1>
+            
+            <div class="avatar-section">
+                <div class="avatar-container" id="avatarContainer">
+                    <div class="avatar-placeholder">👤</div>
+                    <img src="" alt="Avatar" class="avatar-image" id="avatarImage">
+                    <div class="change-overlay">Изменить фото</div>
+                </div>
+                <p class="avatar-hint">Добавьте фото профиля</p>
+            </div>
+            
+            <div class="form-group">
+                <label class="input-label">Имя</label>
+                <input type="text" class="input-field" id="nameInput" placeholder="Введите ваше имя" maxlength="50">
+            </div>
+            
+            <div class="form-group">
+                <label class="input-label">Фамилия</label>
+                <input type="text" class="input-field" id="surnameInput" placeholder="Введите вашу фамилию" maxlength="50">
+            </div>
+            
+            <div class="form-group">
+                <label class="input-label">О себе</label>
+                <textarea class="input-field bio-input" id="bioInput" placeholder="Расскажите о себе..." maxlength="200"></textarea>
+                <div class="counter"><span id="charCount">0</span>/200</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="input-label">Пол</label>
+                <div class="gender-buttons">
+                    <button class="gender-button" data-gender="male">Мужской</button>
+                    <button class="gender-button" data-gender="female">Женский</button>
+                    <button class="gender-button" data-gender="other">Другой</button>
+                </div>
+            </div>
+            
+            <button class="complete-button" id="completeBtn" onclick="completeSetup()">
+                Завершить настройку
+            </button>
+            
+            <a href="main-hub.html" class="skip-link" onclick="skipSetup()">
+                Пропустить и продолжить позже
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        const nameInput = document.getElementById('nameInput');
+        const surnameInput = document.getElementById('surnameInput');
+        const bioInput = document.getElementById('bioInput');
+        const charCount = document.getElementById('charCount');
+        const completeBtn = document.getElementById('completeBtn');
+        const genderButtons = document.querySelectorAll('.gender-button');
+        const avatarContainer = document.getElementById('avatarContainer');
+        const avatarImage = document.getElementById('avatarImage');
+        const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+        
+        let selectedGender = '';
+        let avatarFile = null;
+        
+        // Счетчик символов для био
+        bioInput.addEventListener('input', function() {
+            const length = this.value.length;
+            charCount.textContent = length;
+            
+            if (length > 190) {
+                charCount.style.color = '#ff4757';
+            } else if (length > 150) {
+                charCount.style.color = '#ffa502';
+            } else {
+                charCount.style.color = '#999';
+            }
+        });
+        
+        // Выбор пола
+        genderButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                genderButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                selectedGender = this.dataset.gender;
+                checkFormValidity();
+            });
+        });
+        
+        // Загрузка аватарки
+        avatarContainer.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        avatarImage.src = event.target.result;
+                        avatarImage.style.display = 'block';
+                        avatarPlaceholder.style.display = 'none';
+                        avatarFile = file;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            
+            input.click();
+        });
+        
+        // Проверка заполненности формы
+        function checkFormValidity() {
+            const isNameValid = nameInput.value.trim().length >= 2;
+            const isSurnameValid = surnameInput.value.trim().length >= 2;
+            
+            completeBtn.disabled = !(isNameValid && isSurnameValid && selectedGender);
+        }
+        
+        // Слушатели для полей ввода
+        nameInput.addEventListener('input', checkFormValidity);
+        surnameInput.addEventListener('input', checkFormValidity);
+        
+        function completeSetup() {
+            const userData = {
+                name: nameInput.value.trim(),
+                surname: surnameInput.value.trim(),
+                bio: bioInput.value.trim(),
+                gender: selectedGender,
+                avatar: avatarFile ? 'uploaded' : null
+            };
+            
+            // Сохранение в localStorage для демо
+            localStorage.setItem('coolpep_user', JSON.stringify(userData));
+            
+            alert('Профиль успешно создан!');
+            window.location.href = 'main-hub.html';
+        }
+        
+        function skipSetup() {
+            // Создание минимального профиля
+            const defaultUser = {
+                name: 'Пользователь',
+                surname: 'Coolpep',
+                bio: '',
+                gender: 'other',
+                avatar: null
+            };
+            
+            localStorage.setItem('coolpep_user', JSON.stringify(defaultUser));
+            return true; // Позволяет переход по ссылке
+        }
+        
+        // Инициализация
+        checkFormValidity();
+    </script>
+</body>
+</html>

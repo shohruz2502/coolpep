@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Reels</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #000;
+            color: white;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Контейнер для Reels */
+        .reels-container {
+            height: 100vh;
+            position: relative;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        .reels-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
+        }
+        
+        /* Один Reel */
+        .reel {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 30%);
+        }
+        
+        .reel-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            z-index: -1;
+        }
+        
+        /* Информация о Reel */
+        .reel-info {
+            z-index: 2;
+            margin-bottom: 80px;
+        }
+        
+        .reel-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .author-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .follow-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: background 0.2s;
+        }
+        
+        .follow-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .reel-caption {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+        
+        .reel-music {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+        }
+        
+        .music-icon {
+            font-size: 16px;
+        }
+        
+        /* Действия с Reel */
+        .reel-actions {
+            position: absolute;
+            right: 20px;
+            bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 3;
+        }
+        
+        .action-button {
+            background: none;
+            border: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .action-count {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .action-button.liked .action-icon {
+            background: rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+        
+        /* Прогресс-бар для Reels */
+        .reels-progress {
+            position: fixed;
+            top: 10px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 4px;
+            z-index: 100;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: white;
+            transition: width 0.1s linear;
+        }
+        
+        /* Верхняя панель */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 90;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 1px;
+        }
+        
+        .top-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .top-action {
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .top-action:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: white;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* Кнопка создания Reel */
+        .create-reel-button {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        
+        .create-reel-button:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Комментарии */
+        .comments-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.95);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 200;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .comments-panel.active {
+            transform: translateY(0);
+        }
+        
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comments-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .close-comments {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .comments-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .comment-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .comment-content {
+            flex: 1;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .comment-action {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .comment-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comment-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .comment-send {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 480px) {
+            .reel {
+                padding: 15px;
+            }
+            
+            .reel-actions {
+                right: 15px;
+                bottom: 90px;
+            }
+            
+            .action-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+            }
+            
+            .reel-caption {
+                max-width: 85%;
+            }
+            
+            .top-bar {
+                padding: 12px 15px;
+            }
+            
+            .bottom-nav {
+                padding: 12px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Прогресс-бар Reels -->
+    <div class="reels-progress" id="reelsProgress">
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+    
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="logo">Reels</div>
+        <div class="top-actions">
+            <div class="top-action" onclick="openCamera()">📷</div>
+            <div class="top-action" onclick="window.location.href='main-hub.html'">🏠</div>
+        </div>
+    </div>
+    
+    <!-- Контейнер Reels -->
+    <div class="reels-container" id="reelsContainer">
+        <!-- Reel 1 -->
+        <div class="reel">
+            <div class="video-placeholder">🎵</div>
+            <div class="reel-info">
+                <div class="reel-author">
+                    <div class="author-avatar">ИП</div>
+                    <div class="author-name">Иван Петров</div>
+                    <button class="follow-button">Подписаться</button>
+                </div>
+                <div class="reel-caption">
+                    Новый трек выходит на следующей неделе! Кто уже в предвкушении? 🎶
+                </div>
+                <div class="reel-music">
+                    <span class="music-icon">🎵</span>
+                    <span>Оригинальный звук • Иван Петров</span>
+                </div>
+            </div>
+            <div class="reel-actions">
+                <button class="action-button" onclick="likeReel(this)">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-count">2.1K</div>
+                </button>
+                <button class="action-button" onclick="openComments()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-count">348</div>
+                </button>
+                <button class="action-button" onclick="shareReel()">
+                    <div class="action-icon">🔁</div>
+                    <div class="action-count">127</div>
+                </button>
+                <button class="action-button" onclick="saveReel(this)">
+                    <div class="action-icon">📥</div>
+                    <div class="action-count"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Reel 2 -->
+        <div class="reel">
+            <div class="video-placeholder" style="background: linear-gradient(45deg, #ff6b6b, #ffa726);">🍳</div>
+            <div class="reel-info">
+                <div class="reel-author">
+                    <div class="author-avatar">АС</div>
+                    <div class="author-name">Анна Сидорова</div>
+                    <button class="follow-button">Подписаться</button>
+                </div>
+                <div class="reel-caption">
+                    Простой рецепт идеального завтрака за 5 минут! 🥑🍳
+                </div>
+                <div class="reel-music">
+                    <span class="music-icon">🎵</span>
+                    <span>тренд • утреннее настроение</span>
+                </div>
+            </div>
+            <div class="reel-actions">
+                <button class="action-button" onclick="likeReel(this)">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-count">5.7K</div>
+                </button>
+                <button class="action-button" onclick="openComments()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-count">892</div>
+                </button>
+                <button class="action-button" onclick="shareReel()">
+                    <div class="action-icon">🔁</div>
+                    <div class="action-count">421</div>
+                </button>
+                <button class="action-button" onclick="saveReel(this)">
+                    <div class="action-icon">📥</div>
+                    <div class="action-count"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Reel 3 -->
+        <div class="reel">
+            <div class="video-placeholder" style="background: linear-gradient(45deg, #4cd964, #5ac8fa);">🏀</div>
+            <div class="reel-info">
+                <div class="reel-author">
+                    <div class="author-avatar">ДК</div>
+                    <div class="author-name">Дмитрий Козлов</div>
+                    <button class="follow-button">Подписаться</button>
+                </div>
+                <div class="reel-caption">
+                    Тренировка дня! Кто со мной? 💪 #спорт #мотивация
+                </div>
+                <div class="reel-music">
+                    <span class="music-icon">🎵</span>
+                    <span>тренд • workout motivation</span>
+                </div>
+            </div>
+            <div class="reel-actions">
+                <button class="action-button liked" onclick="likeReel(this)">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-count">3.4K</div>
+                </button>
+                <button class="action-button" onclick="openComments()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-count">567</div>
+                </button>
+                <button class="action-button" onclick="shareReel()">
+                    <div class="action-icon">🔁</div>
+                    <div class="action-count">234</div>
+                </button>
+                <button class="action-button" onclick="saveReel(this)">
+                    <div class="action-icon">📥</div>
+                    <div class="action-count"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Reel 4 -->
+        <div class="reel">
+            <div class="video-placeholder" style="background: linear-gradient(45deg, #ff2d55, #af52de);">🎨</div>
+            <div class="reel-info">
+                <div class="reel-author">
+                    <div class="author-avatar">МВ</div>
+                    <div class="author-name">Мария Волкова</div>
+                    <button class="follow-button">Подписаться</button>
+                </div>
+                <div class="reel-caption">
+                    Процесс создания цифровой иллюстрации от эскиза до финала ✨
+                </div>
+                <div class="reel-music">
+                    <span class="music-icon">🎵</span>
+                    <span>оригинальный звук • Мария Волкова</span>
+                </div>
+            </div>
+            <div class="reel-actions">
+                <button class="action-button" onclick="likeReel(this)">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-count">8.9K</div>
+                </button>
+                <button class="action-button" onclick="openComments()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-count">1.2K</div>
+                </button>
+                <button class="action-button" onclick="shareReel()">
+                    <div class="action-icon">🔁</div>
+                    <div class="action-count">678</div>
+                </button>
+                <button class="action-button" onclick="saveReel(this)">
+                    <div class="action-icon">📥</div>
+                    <div class="action-count"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Reel 5 -->
+        <div class="reel">
+            <div class="video-placeholder" style="background: linear-gradient(45deg, #007aff, #34c759);">🚀</div>
+            <div class="reel-info">
+                <div class="reel-author">
+                    <div class="author-avatar">АН</div>
+                    <div class="author-name">Алексей Новиков</div>
+                    <button class="follow-button">Подписаться</button>
+                </div>
+                <div class="reel-caption">
+                    Лайфхаки по продуктивности, которые изменили мою жизнь! 📈
+                </div>
+                <div class="reel-music">
+                    <span class="music-icon">🎵</span>
+                    <span>тренд • productivity boost</span>
+                </div>
+            </div>
+            <div class="reel-actions">
+                <button class="action-button" onclick="likeReel(this)">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-count">4.5K</div>
+                </button>
+                <button class="action-button" onclick="openComments()">
+                    <div class="action-icon">💬</div>
+                    <div class="action-count">743</div>
+                </button>
+                <button class="action-button" onclick="shareReel()">
+                    <div class="action-icon">🔁</div>
+                    <div class="action-count">321</div>
+                </button>
+                <button class="action-button" onclick="saveReel(this)">
+                    <div class="action-icon">📥</div>
+                    <div class="action-count"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Кнопка создания -->
+    <button class="create-reel-button" onclick="createReel()">+</button>
+    
+    <!-- Панель комментариев -->
+    <div class="comments-panel" id="commentsPanel">
+        <div class="comments-header">
+            <div class="comments-title">Комментарии</div>
+            <button class="close-comments" onclick="closeComments()">×</button>
+        </div>
+        
+        <div class="comments-list" id="commentsList">
+            <!-- Комментарии будут добавлены через JS -->
+        </div>
+        
+        <div class="comment-input-container">
+            <input type="text" class="comment-input" id="commentInput" placeholder="Добавьте комментарий...">
+            <button class="comment-send" onclick="sendComment()">➤</button>
+        </div>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item active">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        let currentReelIndex = 0;
+        let reels = [];
+        let comments = [
+            { id: 1, author: "Сергей Иванов", text: "Отличный трек! Жду релиза!", likes: 42 },
+            { id: 2, author: "Ольга Петрова", text: "Обожаю твою музыку! 🎶", likes: 31 },
+            { id: 3, author: "Александр", text: "Когда концерт?", likes: 28 },
+            { id: 4, author: "Мария", text: "Уже добавил в плейлист!", likes: 19 },
+            { id: 5, author: "Дмитрий", text: "Бомбический звук! 🔥", likes: 56 }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация Reels
+            reels = document.querySelectorAll('.reel');
+            updateProgressBar();
+            
+            // Настройка скролла для вертикальной навигации
+            const container = document.getElementById('reelsContainer');
+            container.addEventListener('scroll', handleScroll);
+            
+            // Инициализация комментариев
+            loadComments();
+            
+            // Автоматическое переключение Reels (демо)
+            setInterval(() => {
+                if (!isUserScrolling) {
+                    nextReel();
+                }
+            }, 10000); // 10 секунд
+            
+            // Имитация просмотра для прогресс-бара
+            simulateWatching();
+        });
+        
+        let isUserScrolling = false;
+        let scrollTimeout;
+        
+        function handleScroll() {
+            isUserScrolling = true;
+            clearTimeout(scrollTimeout);
+            
+            // Обновляем текущий индекс
+            const scrollTop = this.scrollTop;
+            const windowHeight = window.innerHeight;
+            currentReelIndex = Math.round(scrollTop / windowHeight);
+            
+            updateProgressBar();
+            
+            scrollTimeout = setTimeout(() => {
+                isUserScrolling = false;
+            }, 100);
+        }
+        
+        function updateProgressBar() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            
+            progressBars.forEach((bar, index) => {
+                if (index === currentReelIndex) {
+                    bar.style.width = '100%';
+                } else if (index < currentReelIndex) {
+                    bar.style.width = '100%';
+                } else {
+                    bar.style.width = '0%';
+                }
+            });
+        }
+        
+        function simulateWatching() {
+            setInterval(() => {
+                if (!isUserScrolling) {
+                    const currentBar = document.querySelectorAll('.progress-fill')[currentReelIndex];
+                    const currentWidth = parseFloat(currentBar.style.width) || 0;
+                    
+                    if (currentWidth < 100) {
+                        currentBar.style.width = (currentWidth + 0.5) + '%';
+                    }
+                }
+            }, 100);
+        }
+        
+        function nextReel() {
+            if (currentReelIndex < reels.length - 1) {
+                currentReelIndex++;
+                reels[currentReelIndex].scrollIntoView({ behavior: 'smooth' });
+                updateProgressBar();
+            }
+        }
+        
+        function prevReel() {
+            if (currentReelIndex > 0) {
+                currentReelIndex--;
+                reels[currentReelIndex].scrollIntoView({ behavior: 'smooth' });
+                updateProgressBar();
+            }
+        }
+        
+        function likeReel(button) {
+            const countElement = button.querySelector('.action-count');
+            let count = parseInt(countElement.textContent) || 0;
+            
+            if (button.classList.contains('liked')) {
+                button.classList.remove('liked');
+                count--;
+            } else {
+                button.classList.add('liked');
+                count++;
+            }
+            
+            countElement.textContent = count.toLocaleString();
+        }
+        
+        function saveReel(button) {
+            const icon = button.querySelector('.action-icon');
+            if (icon.textContent === '📥') {
+                icon.textContent = '✓';
+                button.classList.add('liked');
+                alert('Reel сохранен в избранное');
+            } else {
+                icon.textContent = '📥';
+                button.classList.remove('liked');
+                alert('Reel удален из избранного');
+            }
+        }
+        
+        function shareReel() {
+            alert('Поделиться Reel. В полной версии будут доступны мессенджеры и соцсети.');
+        }
+        
+        function openComments() {
+            document.getElementById('commentsPanel').classList.add('active');
+            loadComments();
+        }
+        
+        function closeComments() {
+            document.getElementById('commentsPanel').classList.remove('active');
+        }
+        
+        function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            
+            comments.forEach(comment => {
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                commentItem.innerHTML = `
+                    <div class="comment-avatar">${comment.author.charAt(0)}</div>
+                    <div class="comment-content">
+                        <div class="comment-author">${comment.author}</div>
+                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-actions">
+                            <button class="comment-action" onclick="likeComment(${comment.id})">❤️ ${comment.likes}</button>
+                            <button class="comment-action" onclick="replyToComment(${comment.id})">Ответить</button>
+                        </div>
+                    </div>
+                `;
+                commentsList.appendChild(commentItem);
+            });
+        }
+        
+        function sendComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const author = userData.name || 'Вы';
+                
+                const newComment = {
+                    id: comments.length + 1,
+                    author: author,
+                    text: text,
+                    likes: 0
+                };
+                
+                comments.unshift(newComment); // Добавляем в начало
+                loadComments();
+                input.value = '';
+                
+                // Обновляем счетчик комментариев на активном Reel
+                updateCommentCount(1);
+            }
+        }
+        
+        function likeComment(commentId) {
+            const comment = comments.find(c => c.id === commentId);
+            if (comment) {
+                comment.likes++;
+                loadComments();
+            }
+        }
+        
+        function replyToComment(commentId) {
+            const comment = comments.find(c => c.id === commentId);
+            if (comment) {
+                const input = document.getElementById('commentInput');
+                input.value = `@${comment.author} `;
+                input.focus();
+            }
+        }
+        
+        function updateCommentCount(increment) {
+            const activeReel = reels[currentReelIndex];
+            const commentButton = activeReel.querySelector('.action-button:nth-child(2)');
+            const countElement = commentButton.querySelector('.action-count');
+            let count = parseInt(countElement.textContent.replace(',', '')) || 0;
+            count += increment;
+            countElement.textContent = count.toLocaleString();
+        }
+        
+        function createReel() {
+            alert('Создание нового Reel. В полной версии откроется камера с редактором.');
+        }
+        
+        function openCamera() {
+            alert('Открытие камеры для создания Reel или Story.');
+        }
+        
+        // Навигация с клавиатуры
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'ArrowDown') {
+                event.preventDefault();
+                nextReel();
+            } else if (event.code === 'ArrowUp') {
+                event.preventDefault();
+                prevReel();
+            } else if (event.code === 'Space') {
+                event.preventDefault();
+                // Пауза/плей видео (в реальном приложении)
+            }
+        });
+        
+        // Закрытие комментариев при клике вне панели
+        document.addEventListener('click', function(event) {
+            const commentsPanel = document.getElementById('commentsPanel');
+            if (commentsPanel.classList.contains('active') && 
+                !commentsPanel.contains(event.target) && 
+                !event.target.closest('.action-button:nth-child(2)')) {
+                closeComments();
+            }
+        });
+    </script>
+</body>
+</html>
