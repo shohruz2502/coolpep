@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - LOVE Чат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+        
+        /* Верхняя панель чата */
+        .chat-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .love-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .chat-info {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 3px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .chat-status {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-action {
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Баннер защиты */
+        .security-banner {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .lock-icon {
+            color: #4cd964;
+            font-size: 14px;
+        }
+        
+        /* Область сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message-date {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .message-date::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+        
+        .message-date span {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+            padding: 5px 15px;
+            border-radius: 15px;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .message {
+            max-width: 70%;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: auto;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 100%;
+        }
+        
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .message.incoming .message-bubble {
+            background: rgba(255, 255, 255, 0.2);
+            border-top-left-radius: 5px;
+        }
+        
+        .message.outgoing .message-bubble {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            align-self: flex-end;
+        }
+        
+        .heart-reaction {
+            position: absolute;
+            bottom: -15px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #ff6b6b;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .heart-reaction:hover {
+            transform: scale(1.2);
+        }
+        
+        .heart-reaction.liked {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        /* Панель ввода сообщения */
+        .input-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+        
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-action {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .input-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s;
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .send-button {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .send-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+        
+        /* Особые функции LOVE чата */
+        .love-features {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 90;
+        }
+        
+        .love-feature {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .love-feature:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        /* Конфетти эффект */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .confetti.active {
+            display: block;
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            background: #ff6b6b;
+            top: -20px;
+            animation: fall linear forwards;
+        }
+        
+        .confetti-piece:nth-child(odd) {
+            background: #ffa726;
+        }
+        
+        .confetti-piece:nth-child(even) {
+            background: #4cd964;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        
+        /* Меню настроек LOVE чата */
+        .love-settings {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 200;
+            display: none;
+            min-width: 250px;
+            color: #333;
+        }
+        
+        .love-settings.active {
+            display: block;
+        }
+        
+        .settings-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background: #ff6b6b;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: white;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* Анимированные сердечки */
+        .floating-heart {
+            position: fixed;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 1;
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .input-container {
+                padding: 12px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .love-features {
+                bottom: 70px;
+                right: 15px;
+            }
+            
+            .love-feature {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="chat-header">
+        <button class="back-button" onclick="window.location.href='main-hub.html'">←</button>
+        
+        <div class="love-icon">💖</div>
+        
+        <div class="chat-info">
+            <div class="chat-name">LOVE Чат</div>
+            <div class="chat-status">Только для вас двоих</div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="header-action" title="Настройки" onclick="toggleLoveSettings()">⚙️</div>
+            <div class="header-action" title="Защищено" onclick="showSecurityInfo()">🔒</div>
+        </div>
+    </div>
+    
+    <!-- Баннер защиты -->
+    <div class="security-banner">
+        <span class="lock-icon">🔒</span>
+        <span>Чат защищен паролем • Сообщения зашифрованы</span>
+    </div>
+    
+    <!-- Область сообщений -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-date">
+            <span>Сегодня</span>
+        </div>
+        
+        <!-- Сообщения будут добавлены через JS -->
+    </div>
+    
+    <!-- Особые функции -->
+    <div class="love-features">
+        <button class="love-feature" onclick="sendLove()" title="Отправить любовь">💖</button>
+        <button class="love-feature" onclick="sendKiss()" title="Отправить поцелуй">💋</button>
+        <button class="love-feature" onclick="sendFlowers()" title="Отправить цветы">💐</button>
+    </div>
+    
+    <!-- Панель ввода -->
+    <div class="input-container">
+        <div class="input-actions">
+            <button class="input-action" onclick="attachPhoto()">📷</button>
+            <button class="input-action" onclick="showStickers()">😊</button>
+        </div>
+        
+        <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Напишите что-нибудь особенное..." 
+            rows="1"
+            oninput="autoResize(this)"
+            onkeypress="handleKeyPress(event)"
+        ></textarea>
+        
+        <button class="send-button" id="sendButton" onclick="sendMessage()">➤</button>
+    </div>
+    
+    <!-- Меню настроек -->
+    <div class="love-settings" id="loveSettings">
+        <div class="settings-title">
+            <span>⚙️</span>
+            <span>Настройки LOVE чата</span>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Плавающие сердечки</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="floatingHearts" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Анимации</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="animations" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Специальные звуки</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="specialSounds" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">Темная тема</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="darkTheme">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <button style="width: 100%; margin-top: 15px; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; cursor: pointer;" onclick="changePassword()">
+            🔐 Изменить пароль
+        </button>
+    </div>
+    
+    <!-- Конфетти эффект -->
+    <div class="confetti" id="confetti"></div>
+    
+    <!-- Плавающие сердечки -->
+    <div id="floatingHeartsContainer"></div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="love-chat.html" class="nav-item active">
+            <div class="nav-icon">💖</div>
+            <div class="nav-label">LOVE</div>
+        </a>
+    </nav>
+    
+    <script>
+        // История сообщений LOVE чата
+        let messages = [
+            { id: 1, text: "Привет, любимая! 💖", sender: "Анна", initial: "А", time: "09:00", type: "incoming", hearts: 1 },
+            { id: 2, text: "Доброе утро, мой любимый! Как спалось? ☀️", sender: "user", initial: "Я", time: "09:02", type: "outgoing", hearts: 3 },
+            { id: 3, text: "Отлично, сны были только о тебе 😊", sender: "Анна", initial: "А", time: "09:03", type: "incoming", hearts: 2 },
+            { id: 4, text: "Скучаю по тебе... Когда следующая встреча? 💕", sender: "user", initial: "Я", time: "09:05", type: "outgoing", hearts: 5 },
+            { id: 5, text: "В субботу! Уже купила билеты в кино 🎬", sender: "Анна", initial: "А", time: "09:06", type: "incoming", hearts: 4 },
+            { id: 6, text: "Ты лучшая! Ждать не могу! 💖", sender: "user", initial: "Я", time: "09:07", type: "outgoing", hearts: 6 }
+        ];
+        
+        // Настройки LOVE чата
+        let loveSettings = {
+            floatingHearts: true,
+            animations: true,
+            specialSounds: true,
+            darkTheme: false
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка сообщений
+            renderMessages();
+            
+            // Настройка плавающих сердечек
+            setupFloatingHearts();
+            
+            // Настройка переключателей
+            setupToggleSwitches();
+            
+            // Автоскролл вниз
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+            
+            // Симуляция ответов
+            simulateResponses();
+        });
+        
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Очищаем контейнер кроме первого элемента (дата)
+            const existingMessages = container.querySelectorAll('.message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Добавляем сообщения
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.type}`;
+                messageDiv.dataset.id = msg.id;
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userInitial = userData.name ? userData.name.charAt(0) : 'Я';
+                
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">${msg.type === 'outgoing' ? userInitial : msg.initial}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            ${msg.text}
+                            <div class="heart-reaction ${msg.hearts > 0 ? 'liked' : ''}" onclick="addHeart(${msg.id})">
+                                ${msg.hearts > 0 ? msg.hearts : ''} ❤️
+                            </div>
+                        </div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                
+                container.appendChild(messageDiv);
+            });
+            
+            // Автоскролл вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function addHeart(messageId) {
+            const message = messages.find(m => m.id === messageId);
+            if (message) {
+                message.hearts = (message.hearts || 0) + 1;
+                renderMessages();
+                
+                // Эффект конфетти для больших количеств сердец
+                if (loveSettings.animations && message.hearts % 5 === 0) {
+                    createConfetti();
+                }
+            }
+        }
+        
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText) {
+                // Добавляем новое сообщение
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userName = userData.name || 'Вы';
+                
+                const newMessage = {
+                    id: messages.length + 1,
+                    text: messageText,
+                    sender: userName,
+                    initial: userData.name ? userData.name.charAt(0) : 'Я',
+                    time: time,
+                    type: 'outgoing',
+                    hearts: 0
+                };
+                
+                messages.push(newMessage);
+                renderMessages();
+                
+                // Очищаем поле ввода
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Имитация ответа
+                setTimeout(() => {
+                    simulateLoveResponse();
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function simulateResponses() {
+            // Случайные любовные сообщения
+            setInterval(() => {
+                if (Math.random() > 0.8 && messages.length < 15) {
+                    simulateLoveResponse();
+                }
+            }, 30000);
+        }
+        
+        function simulateLoveResponse() {
+            const loveResponses = [
+                { text: "Я тоже тебя люблю! 💕", hearts: 2 },
+                { text: "Скучаю по тебе... 😘", hearts: 3 },
+                { text: "Ты самый лучший! 🌟", hearts: 4 },
+                { text: "Жду нашей встречи! 💖", hearts: 5 },
+                { text: "Присылаю тебе воздушный поцелуй! 💋", hearts: 6 },
+                { text: "Ты делаешь меня счастливой! 😊", hearts: 7 }
+            ];
+            
+            const randomResponse = loveResponses[Math.floor(Math.random() * loveResponses.length)];
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            const responseMessage = {
+                id: messages.length + 1,
+                text: randomResponse.text,
+                sender: "Анна",
+                initial: "А",
+                time: time,
+                type: 'incoming',
+                hearts: randomResponse.hearts
+            };
+            
+            messages.push(responseMessage);
+            renderMessages();
+            
+            // Эффект конфетти для особых сообщений
+            if (loveSettings.animations && randomResponse.hearts >= 5) {
+                createConfetti();
+            }
+        }
+        
+        function sendLove() {
+            const input = document.getElementById('messageInput');
+            input.value = "Люблю тебя! 💖";
+            autoResize(input);
+            input.focus();
+        }
+        
+        function sendKiss() {
+            const input = document.getElementById('messageInput');
+            input.value = "Посылаю тебе поцелуй! 💋";
+            autoResize(input);
+            input.focus();
+        }
+        
+        function sendFlowers() {
+            const input = document.getElementById('messageInput');
+            input.value = "Для тебя цветы! 💐";
+            autoResize(input);
+            input.focus();
+        }
+        
+        function attachPhoto() {
+            alert('В LOVE чате можно отправлять фото и видео. В полной версии здесь будет выбор из галереи.');
+        }
+        
+        function showStickers() {
+            alert('Специальные стикеры для LOVE чата. В полной версии здесь будет набор любовных стикеров.');
+        }
+        
+        function setupFloatingHearts() {
+            if (!loveSettings.floatingHearts) return;
+            
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    createFloatingHeart();
+                }
+            }, 3000);
+        }
+        
+        function createFloatingHeart() {
+            const container = document.getElementById('floatingHeartsContainer');
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart';
+            heart.textContent = '💖';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (3 + Math.random() * 5) + 's';
+            heart.style.fontSize = (20 + Math.random() * 30) + 'px';
+            
+            container.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 8000);
+        }
+        
+        function setupToggleSwitches() {
+            document.getElementById('floatingHearts').addEventListener('change', function() {
+                loveSettings.floatingHearts = this.checked;
+                if (this.checked) {
+                    setupFloatingHearts();
+                }
+            });
+            
+            document.getElementById('animations').addEventListener('change', function() {
+                loveSettings.animations = this.checked;
+            });
+            
+            document.getElementById('specialSounds').addEventListener('change', function() {
+                loveSettings.specialSounds = this.checked;
+            });
+            
+            document.getElementById('darkTheme').addEventListener('change', function() {
+                loveSettings.darkTheme = this.checked;
+                if (this.checked) {
+                    document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+                } else {
+                    document.body.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%)';
+                }
+            });
+        }
+        
+        function toggleLoveSettings() {
+            const settings = document.getElementById('loveSettings');
+            settings.classList.toggle('active');
+        }
+        
+        function showSecurityInfo() {
+            alert('🔒 LOVE чат защищен:\n\n• Требуется пароль для входа\n• Все сообщения зашифрованы\n• Никто кроме вас двоих не имеет доступа\n• История сообщений хранится только на ваших устройствах');
+        }
+        
+        function changePassword() {
+            const currentPass = prompt('Введите текущий пароль:');
+            if (currentPass === 'love123') {
+                const newPass = prompt('Введите новый пароль:');
+                if (newPass && newPass.length >= 4) {
+                    const confirmPass = prompt('Подтвердите новый пароль:');
+                    if (newPass === confirmPass) {
+                        alert('Пароль успешно изменен!');
+                    } else {
+                        alert('Пароли не совпадают');
+                    }
+                } else {
+                    alert('Пароль должен быть не менее 4 символов');
+                }
+            } else if (currentPass) {
+                alert('Неверный текущий пароль');
+            }
+        }
+        
+        function createConfetti() {
+            if (!loveSettings.animations) return;
+            
+            const confetti = document.getElementById('confetti');
+            confetti.innerHTML = '';
+            confetti.classList.add('active');
+            
+            for (let i = 0; i < 100; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.animationDuration = (1 + Math.random() * 3) + 's';
+                piece.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.appendChild(piece);
+            }
+            
+            setTimeout(() => {
+                confetti.classList.remove('active');
+            }, 3000);
+        }
+        
+        // Закрытие меню настроек при клике вне его
+        document.addEventListener('click', function(event) {
+            const settings = document.getElementById('loveSettings');
+            const settingsButton = document.querySelector('.header-action:first-child');
+            
+            if (!settings.contains(event.target) && 
+                !settingsButton.contains(event.target) && 
+                settings.classList.contains('active')) {
+                settings.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

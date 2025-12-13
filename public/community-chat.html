@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Чат сообщества</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель чата */
+        .chat-header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .community-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .chat-status {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online-count {
+            color: #4cd964;
+            font-weight: 500;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-action {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .header-action:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Информация о сообществе */
+        .community-info-banner {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .community-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .community-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Область сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f5f7fa;
+        }
+        
+        .message-date {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .message-date::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #eee;
+            z-index: 1;
+        }
+        
+        .message-date span {
+            background: #f5f7fa;
+            padding: 0 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .message {
+            max-width: 70%;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 100%;
+        }
+        
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .message.incoming .message-bubble {
+            background: white;
+            border-top-left-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .message.outgoing .message-bubble {
+            background: #667eea;
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            align-self: flex-end;
+        }
+        
+        .message.outgoing .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .message-sender {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .message.incoming .message-sender {
+            color: #667eea;
+        }
+        
+        .system-message {
+            align-self: center;
+            background: rgba(0,0,0,0.05);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            margin: 10px 0;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        /* Панель ввода сообщения */
+        .input-container {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-action {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #667eea;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .input-action:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .message-input[disabled] {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .send-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Участники онлайн */
+        .online-members {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        
+        .online-member {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .member-name {
+            font-size: 11px;
+            color: #666;
+            max-width: 50px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* Индикатор печати */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            margin-bottom: 10px;
+            align-self: flex-start;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .typing-indicator.active {
+            display: flex;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Меню сообщения */
+        .message-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            z-index: 1000;
+            min-width: 150px;
+        }
+        
+        .message-menu.active {
+            display: block;
+        }
+        
+        .menu-item {
+            padding: 12px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            color: #333;
+            transition: background 0.2s;
+        }
+        
+        .menu-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .menu-item.warning {
+            color: #ff4757;
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .input-container {
+                padding: 12px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .community-info-banner {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .community-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="chat-header">
+        <button class="back-button" onclick="window.location.href='family-main.html'">←</button>
+        
+        <div class="community-icon">🎓</div>
+        
+        <div class="chat-info">
+            <div class="chat-name" id="communityName">Мой Университет</div>
+            <div class="chat-status">
+                <span class="online-count">45 онлайн</span>
+                • 1.2K участников
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="header-action" title="Участники" onclick="showMembers()">👥</div>
+            <div class="header-action" title="Информация" onclick="showCommunityInfo()">ⓘ</div>
+        </div>
+    </div>
+    
+    <!-- Информация о сообществе -->
+    <div class="community-info-banner">
+        <div class="community-description">
+            Официальное сообщество университета. Обсуждение учебы, мероприятий и студенческой жизни.
+        </div>
+        <div class="community-stats">
+            <div class="stat">👥 1,247</div>
+            <div class="stat">💬 342</div>
+            <div class="stat">🔒 Закрытое</div>
+        </div>
+    </div>
+    
+    <!-- Участники онлайн -->
+    <div class="online-members" id="onlineMembers">
+        <!-- Участники будут добавлены через JS -->
+    </div>
+    
+    <!-- Область сообщений -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-date">
+            <span>Сегодня</span>
+        </div>
+        
+        <div class="system-message">
+            👤 <strong>Анна Сидорова</strong> присоединилась к сообществу
+        </div>
+        
+        <!-- Сообщения будут добавлены через JS -->
+        
+        <!-- Индикатор печати -->
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span style="font-size: 12px; color: #666;">Иван Петров печатает...</span>
+        </div>
+    </div>
+    
+    <!-- Панель ввода -->
+    <div class="input-container">
+        <div class="input-actions">
+            <button class="input-action" onclick="attachFile()">📎</button>
+            <button class="input-action" onclick="toggleEmojiPicker()">😊</button>
+        </div>
+        
+        <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Напишите сообщение в сообщество..." 
+            rows="1"
+            oninput="autoResize(this)"
+            onkeypress="handleKeyPress(event)"
+        ></textarea>
+        
+        <button class="send-button" id="sendButton" onclick="sendMessage()">➤</button>
+    </div>
+    
+    <!-- Меню сообщения -->
+    <div class="message-menu" id="messageMenu">
+        <button class="menu-item" onclick="replyToMessage()">
+            <span>↩️</span>
+            <span>Ответить</span>
+        </button>
+        <button class="menu-item" onclick="copyMessage()">
+            <span>📋</span>
+            <span>Копировать</span>
+        </button>
+        <button class="menu-item" onclick="reportMessage()">
+            <span>🚨</span>
+            <span>Пожаловаться</span>
+        </button>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item active">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Данные сообщества
+        let communityData = {
+            name: "Мой Университет",
+            description: "Официальное сообщество университета. Обсуждение учебы, мероприятий и студенческой жизни.",
+            members: 1247,
+            online: 45,
+            isAdmin: false,
+            userMuted: false
+        };
+        
+        // Участники онлайн
+        const onlineMembers = [
+            { name: "Иван П.", initial: "ИП" },
+            { name: "Анна С.", initial: "АС" },
+            { name: "Дмитрий К.", initial: "ДК" },
+            { name: "Мария В.", initial: "МВ" },
+            { name: "Алексей Н.", initial: "АН" },
+            { name: "Елена С.", initial: "ЕС" },
+            { name: "Сергей И.", initial: "СИ" },
+            { name: "Ольга К.", initial: "ОК" },
+            { name: "Павел С.", initial: "ПС" },
+            { name: "Татьяна М.", initial: "ТМ" }
+        ];
+        
+        // История сообщений
+        let messages = [
+            { id: 1, text: "Привет всем! Кто идет на лекцию в 10:00?", sender: "Анна Сидорова", initial: "АС", time: "09:15", type: "incoming" },
+            { id: 2, text: "Я буду там. Говорят, будет важная информация по экзаменам", sender: "Иван Петров", initial: "ИП", time: "09:17", type: "incoming" },
+            { id: 3, text: "Я тоже приду. Кто конспекты за прошлую лекцию сфоткал?", sender: "Дмитрий Козлов", initial: "ДК", time: "09:20", type: "incoming" },
+            { id: 4, text: "У меня есть, могу скинуть после пары", sender: "user", initial: "Я", time: "09:22", type: "outgoing" },
+            { id: 5, text: "Спасибо! Кстати, напоминаю про собрание факультета в 14:00", sender: "Мария Волкова", initial: "МВ", time: "09:25", type: "incoming" },
+            { id: 6, text: "Всем привет! Только что присоединился к сообществу", sender: "Алексей Новиков", initial: "АН", time: "09:30", type: "incoming" }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка данных пользователя
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Загрузка данных сообщества
+            const savedCommunity = localStorage.getItem('current_community');
+            if (savedCommunity) {
+                const community = JSON.parse(savedCommunity);
+                communityData.name = community.name;
+                communityData.isAdmin = community.isAdmin || false;
+                
+                document.getElementById('communityName').textContent = communityData.name;
+                document.querySelector('.community-description').textContent = communityData.description;
+            }
+            
+            // Проверка статуса "мута"
+            const isMuted = localStorage.getItem('user_muted') === 'true';
+            if (isMuted) {
+                communityData.userMuted = true;
+                disableInput();
+            }
+            
+            // Загрузка участников онлайн
+            loadOnlineMembers();
+            
+            // Загрузка сообщений
+            renderMessages();
+            
+            // Настройка автоподгрузки сообщений
+            setupAutoMessages();
+            
+            // Автоскролл вниз
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+            
+            // Имитация активности участников
+            simulateActivity();
+        });
+        
+        function loadOnlineMembers() {
+            const container = document.getElementById('onlineMembers');
+            container.innerHTML = '';
+            
+            onlineMembers.forEach(member => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'online-member';
+                memberDiv.innerHTML = `
+                    <div class="member-avatar">${member.initial}</div>
+                    <div class="member-name">${member.name}</div>
+                `;
+                container.appendChild(memberDiv);
+            });
+        }
+        
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Сохраняем системные сообщения и индикатор печати
+            const systemMessages = container.querySelectorAll('.system-message');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            // Очищаем контейнер
+            container.innerHTML = `
+                <div class="message-date">
+                    <span>Сегодня</span>
+                </div>
+            `;
+            
+            // Восстанавливаем системные сообщения
+            systemMessages.forEach(msg => {
+                container.appendChild(msg.cloneNode(true));
+            });
+            
+            // Добавляем сообщения
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.type}`;
+                messageDiv.dataset.id = msg.id;
+                
+                // Добавляем обработчик контекстного меню
+                messageDiv.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    showMessageMenu(e, msg.id);
+                });
+                
+                // Для мобильных - тап
+                messageDiv.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        showMessageMenu(e, msg.id);
+                    }
+                });
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userInitial = userData.name ? userData.name.charAt(0) + (userData.surname ? userData.surname.charAt(0) : '') : 'Я';
+                
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">${msg.type === 'outgoing' ? userInitial : msg.initial}</div>
+                    <div class="message-content">
+                        ${msg.type === 'incoming' ? `<div class="message-sender">${msg.sender}</div>` : ''}
+                        <div class="message-bubble">${msg.text}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                
+                container.appendChild(messageDiv);
+            });
+            
+            // Восстанавливаем индикатор печати
+            container.appendChild(typingIndicator);
+            
+            // Автоскролл вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function showMessageMenu(event, messageId) {
+            const menu = document.getElementById('messageMenu');
+            
+            // Позиционируем меню
+            menu.style.top = `${event.clientY}px`;
+            menu.style.left = `${event.clientX}px`;
+            menu.classList.add('active');
+            
+            // Закрытие меню при клике вне его
+            setTimeout(() => {
+                const closeMenu = (e) => {
+                    if (!menu.contains(e.target)) {
+                        menu.classList.remove('active');
+                        document.removeEventListener('click', closeMenu);
+                    }
+                };
+                document.addEventListener('click', closeMenu);
+            }, 100);
+            
+            // Сохраняем ID сообщения для действий
+            menu.dataset.messageId = messageId;
+        }
+        
+        function replyToMessage() {
+            const menu = document.getElementById('messageMenu');
+            const messageId = menu.dataset.messageId;
+            const message = messages.find(m => m.id == messageId);
+            
+            if (message) {
+                const input = document.getElementById('messageInput');
+                input.value = `Ответ на: "${message.text}"\n`;
+                input.focus();
+                autoResize(input);
+            }
+            
+            menu.classList.remove('active');
+        }
+        
+        function copyMessage() {
+            const menu = document.getElementById('messageMenu');
+            const messageId = menu.dataset.messageId;
+            const message = messages.find(m => m.id == messageId);
+            
+            if (message) {
+                navigator.clipboard.writeText(message.text)
+                    .then(() => alert('Сообщение скопировано'))
+                    .catch(() => alert('Не удалось скопировать'));
+            }
+            
+            menu.classList.remove('active');
+        }
+        
+        function reportMessage() {
+            const menu = document.getElementById('messageMenu');
+            const messageId = menu.dataset.messageId;
+            
+            alert(`Жалоба на сообщение #${messageId} отправлена администратору`);
+            menu.classList.remove('active');
+        }
+        
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Показываем индикатор печати
+            if (textarea.value.length > 0) {
+                showTypingIndicator();
+            } else {
+                hideTypingIndicator();
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            if (communityData.userMuted) {
+                alert('Вам закрыли рот в этом сообществе. Вы не можете отправлять сообщения.');
+                return;
+            }
+            
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText) {
+                // Добавляем новое сообщение
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userName = userData.name || 'Вы';
+                
+                const newMessage = {
+                    id: messages.length + 1,
+                    text: messageText,
+                    sender: userName,
+                    initial: userData.name ? userData.name.charAt(0) : 'Я',
+                    time: time,
+                    type: 'outgoing'
+                };
+                
+                messages.push(newMessage);
+                renderMessages();
+                
+                // Очищаем поле ввода
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Скрываем индикатор печати
+                hideTypingIndicator();
+                
+                // Имитация ответов других участников
+                setTimeout(() => {
+                    simulateResponse();
+                }, 1000 + Math.random() * 3000);
+            }
+        }
+        
+        function simulateResponse() {
+            const responses = [
+                { text: "Понял, спасибо!", sender: "Иван Петров", initial: "ИП" },
+                { text: "Интересно, а что по поводу практики?", sender: "Анна Сидорова", initial: "АС" },
+                { text: "👍", sender: "Дмитрий Козлов", initial: "ДК" },
+                { text: "Я тоже это заметил", sender: "Мария Волкова", initial: "МВ" },
+                { text: "Согласен с вами", sender: "Алексей Новиков", initial: "АН" }
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            const responseMessage = {
+                id: messages.length + 1,
+                text: randomResponse.text,
+                sender: randomResponse.sender,
+                initial: randomResponse.initial,
+                time: time,
+                type: 'incoming'
+            };
+            
+            messages.push(responseMessage);
+            renderMessages();
+        }
+        
+        function setupAutoMessages() {
+            // Автоматические сообщения для демо активности
+            setInterval(() => {
+                if (Math.random() > 0.7 && messages.length < 20) {
+                    const autoMessages = [
+                        { text: "Кто-нибудь знает расписание на завтра?", sender: "Сергей Иванов", initial: "СИ" },
+                        { text: "Есть новости по стипендиям?", sender: "Ольга Кузнецова", initial: "ОК" },
+                        { text: "Напоминаю про дедлайн по проекту!", sender: "Павел Соколов", initial: "ПС" },
+                        { text: "Кто хочет в библиотеку после пар?", sender: "Татьяна Михайлова", initial: "ТМ" }
+                    ];
+                    
+                    const randomMessage = autoMessages[Math.floor(Math.random() * autoMessages.length)];
+                    const now = new Date();
+                    const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                                now.getMinutes().toString().padStart(2, '0');
+                    
+                    const autoMessage = {
+                        id: messages.length + 1,
+                        text: randomMessage.text,
+                        sender: randomMessage.sender,
+                        initial: randomMessage.initial,
+                        time: time,
+                        type: 'incoming'
+                    };
+                    
+                    messages.push(autoMessage);
+                    renderMessages();
+                }
+            }, 15000);
+        }
+        
+        function simulateActivity() {
+            // Случайное появление "печатает..."
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    showTypingIndicator();
+                    setTimeout(hideTypingIndicator, 2000 + Math.random() * 3000);
+                }
+            }, 10000);
+            
+            // Случайное изменение онлайн-статуса
+            setInterval(() => {
+                const onlineCount = document.querySelector('.online-count');
+                let count = parseInt(onlineCount.textContent);
+                const change = Math.random() > 0.5 ? 1 : -1;
+                count = Math.max(30, Math.min(60, count + change));
+                onlineCount.textContent = count;
+                communityData.online = count;
+            }, 30000);
+        }
+        
+        function showTypingIndicator() {
+            const typingNames = ["Иван Петров", "Анна Сидорова", "Дмитрий Козлов", "Мария Волкова"];
+            const randomName = typingNames[Math.floor(Math.random() * typingNames.length)];
+            
+            const indicator = document.getElementById('typingIndicator');
+            indicator.querySelector('span:last-child').textContent = `${randomName} печатает...`;
+            indicator.classList.add('active');
+            
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+        
+        function attachFile() {
+            alert('В полной версии здесь будет выбор файлов для отправки');
+        }
+        
+        function toggleEmojiPicker() {
+            alert('В полной версии здесь будет панель эмодзи');
+        }
+        
+        function showMembers() {
+            alert(`Участники сообщества:\n\nВсего: ${communityData.members}\nОнлайн: ${communityData.online}\n\nВы можете просмотреть полный список участников в настройках сообщества.`);
+        }
+        
+        function showCommunityInfo() {
+            alert(`Информация о сообществе:\n\nНазвание: ${communityData.name}\nОписание: ${communityData.description}\nУчастников: ${communityData.members}\nСоздано: 15.01.2023\nТип: Закрытое сообщество\n\nТребуется пароль для входа.`);
+        }
+        
+        function disableInput() {
+            const input = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            input.disabled = true;
+            input.placeholder = "Рот закрыт 🤐";
+            sendButton.disabled = true;
+            sendButton.style.background = '#ccc';
+            
+            // Показываем уведомление
+            setTimeout(() => {
+                const container = document.getElementById('messagesContainer');
+                const systemMsg = document.createElement('div');
+                systemMsg.className = 'system-message';
+                systemMsg.innerHTML = '🔇 <strong>Администратор закрыл вам возможность отправлять сообщения в этом чате</strong>';
+                container.appendChild(systemMsg);
+                container.scrollTop = container.scrollHeight;
+            }, 1000);
+        }
+        
+        // Обработка изменения статуса "мута" в реальном времени
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'user_muted') {
+                const isMuted = e.newValue === 'true';
+                communityData.userMuted = isMuted;
+                
+                if (isMuted) {
+                    disableInput();
+                } else {
+                    const input = document.getElementById('messageInput');
+                    const sendButton = document.getElementById('sendButton');
+                    
+                    input.disabled = false;
+                    input.placeholder = "Напишите сообщение в сообщество...";
+                    sendButton.disabled = false;
+                    sendButton.style.background = '#667eea';
+                    
+                    // Показываем уведомление о размуте
+                    const container = document.getElementById('messagesContainer');
+                    const systemMsg = document.createElement('div');
+                    systemMsg.className = 'system-message';
+                    systemMsg.innerHTML = '🎤 <strong>Вам снова разрешено отправлять сообщения</strong>';
+                    container.appendChild(systemMsg);
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

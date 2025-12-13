@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Админ панель</title>
+    <style>
+        /* Все стили из community-chat.html + дополнительные для админа */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Верхняя панель чата */
+        .chat-header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .community-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .chat-status {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online-count {
+            color: #4cd964;
+            font-weight: 500;
+        }
+        
+        .admin-badge {
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-action {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .header-action:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Информация о сообществе */
+        .community-info-banner {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .community-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .community-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Область сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f5f7fa;
+        }
+        
+        .message-date {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .message-date::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #eee;
+            z-index: 1;
+        }
+        
+        .message-date span {
+            background: #f5f7fa;
+            padding: 0 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .message {
+            max-width: 70%;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 100%;
+        }
+        
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .message.incoming .message-bubble {
+            background: white;
+            border-top-left-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .message.outgoing .message-bubble {
+            background: #667eea;
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            align-self: flex-end;
+        }
+        
+        .message.outgoing .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .message-sender {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .message.incoming .message-sender {
+            color: #667eea;
+        }
+        
+        .system-message {
+            align-self: center;
+            background: rgba(0,0,0,0.05);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            margin: 10px 0;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        /* Панель ввода сообщения */
+        .input-container {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-action {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #667eea;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .input-action:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .send-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #5a6fd8;
+        }
+        
+        /* Участники онлайн */
+        .online-members {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        
+        .online-member {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .member-name {
+            font-size: 11px;
+            color: #666;
+            max-width: 50px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .muted-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 2px solid white;
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* Индикатор печати */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            margin-bottom: 10px;
+            align-self: flex-start;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .typing-indicator.active {
+            display: flex;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Меню сообщения для админа */
+        .message-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            z-index: 1000;
+            min-width: 200px;
+        }
+        
+        .message-menu.active {
+            display: block;
+        }
+        
+        .menu-item {
+            padding: 12px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            color: #333;
+            transition: background 0.2s;
+        }
+        
+        .menu-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .menu-item.warning {
+            color: #ff4757;
+            font-weight: 600;
+        }
+        
+        .menu-item.success {
+            color: #4cd964;
+            font-weight: 600;
+        }
+        
+        /* Панель управления админа */
+        .admin-panel {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            padding: 20px;
+            z-index: 200;
+            display: none;
+            min-width: 250px;
+        }
+        
+        .admin-panel.active {
+            display: block;
+        }
+        
+        .admin-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .admin-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .admin-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .mute-button {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .mute-button:hover {
+            background: #ff3742;
+        }
+        
+        .unmute-button {
+            background: #4cd964;
+            color: white;
+        }
+        
+        .unmute-button:hover {
+            background: #44d15a;
+        }
+        
+        .settings-button {
+            background: #667eea;
+            color: white;
+        }
+        
+        .settings-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .kick-button {
+            background: #ffa726;
+            color: white;
+        }
+        
+        .kick-button:hover {
+            background: #ff9a00;
+        }
+        
+        /* Список заблокированных */
+        .muted-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        .muted-user {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+        }
+        
+        .muted-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .muted-user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .muted-user-name {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .unmute-small {
+            background: #4cd964;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .input-container {
+                padding: 12px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .community-info-banner {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .admin-panel {
+                left: 20px;
+                right: 20px;
+                bottom: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <div class="chat-header">
+        <button class="back-button" onclick="window.location.href='family-main.html'">←</button>
+        
+        <div class="community-icon">🎓</div>
+        
+        <div class="chat-info">
+            <div class="chat-name">
+                Мой Университет
+                <span class="admin-badge">АДМИН</span>
+            </div>
+            <div class="chat-status">
+                <span class="online-count">45 онлайн</span>
+                • 1.2K участников
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="header-action" title="Управление" onclick="toggleAdminPanel()">⚙️</div>
+            <div class="header-action" title="Участники" onclick="showMembers()">👥</div>
+        </div>
+    </div>
+    
+    <!-- Информация о сообществе -->
+    <div class="community-info-banner">
+        <div class="community-description">
+            Официальное сообщество университета. Вы - администратор этого сообщества.
+        </div>
+        <div class="community-stats">
+            <div class="stat">👥 1,247</div>
+            <div class="stat">🔇 1 в муте</div>
+            <div class="stat">🔒 Закрытое</div>
+        </div>
+    </div>
+    
+    <!-- Участники онлайн -->
+    <div class="online-members" id="onlineMembers">
+        <!-- Участники будут добавлены через JS -->
+    </div>
+    
+    <!-- Область сообщений -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-date">
+            <span>Сегодня</span>
+        </div>
+        
+        <!-- Сообщения будут добавлены через JS -->
+        
+        <!-- Индикатор печати -->
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span style="font-size: 12px; color: #666;">Иван Петров печатает...</span>
+        </div>
+    </div>
+    
+    <!-- Панель ввода -->
+    <div class="input-container">
+        <div class="input-actions">
+            <button class="input-action" onclick="attachFile()">📎</button>
+            <button class="input-action" onclick="toggleEmojiPicker()">😊</button>
+        </div>
+        
+        <textarea 
+            class="message-input" 
+            id="messageInput" 
+            placeholder="Напишите сообщение как администратор..." 
+            rows="1"
+            oninput="autoResize(this)"
+            onkeypress="handleKeyPress(event)"
+        ></textarea>
+        
+        <button class="send-button" id="sendButton" onclick="sendMessage()">➤</button>
+    </div>
+    
+    <!-- Меню сообщения для админа -->
+    <div class="message-menu" id="messageMenu">
+        <button class="menu-item" onclick="replyToMessage()">
+            <span>↩️</span>
+            <span>Ответить</span>
+        </button>
+        <button class="menu-item" onclick="copyMessage()">
+            <span>📋</span>
+            <span>Копировать</span>
+        </button>
+        <button class="menu-item warning" id="muteUserButton" onclick="muteUserFromMenu()">
+            <span>🔇</span>
+            <span>Закрыть рот</span>
+        </button>
+        <button class="menu-item" onclick="deleteMessage()">
+            <span>🗑️</span>
+            <span>Удалить</span>
+        </button>
+    </div>
+    
+    <!-- Панель управления админа -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-title">
+            <span>⚙️</span>
+            <span>Управление сообществом</span>
+        </div>
+        
+        <div class="admin-controls">
+            <button class="admin-button settings-button" onclick="openCommunitySettings()">
+                <span>⚙️</span>
+                <span>Настройки сообщества</span>
+            </button>
+            
+            <div class="muted-list" id="mutedList">
+                <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                    Заблокированные пользователи (1):
+                </div>
+                <!-- Заблокированные пользователи будут добавлены через JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <nav class="bottom-nav">
+        <a href="main-hub.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Главная</div>
+        </a>
+        
+        <a href="vastapae-feed.html" class="nav-item">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">VASTAPAE</div>
+        </a>
+        
+        <a href="friends-list.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">FRIEND</div>
+        </a>
+        
+        <a href="reels-feed.html" class="nav-item">
+            <div class="nav-icon">🎬</div>
+            <div class="nav-label">REELS</div>
+        </a>
+        
+        <a href="family-main.html" class="nav-item active">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Данные сообщества для админа
+        let communityData = {
+            name: "Мой Университет",
+            description: "Официальное сообщество университета. Вы - администратор этого сообщества.",
+            members: 1247,
+            online: 45,
+            isAdmin: true,
+            mutedUsers: []
+        };
+        
+        // Заблокированные пользователи
+        let mutedUsers = [
+            { id: 1, name: "Спамер", initial: "СП", reason: "Спам в чате", mutedAt: "10:30" }
+        ];
+        
+        // Участники онлайн (с информацией о муте)
+        const onlineMembers = [
+            { id: 1, name: "Иван П.", initial: "ИП", isMuted: false },
+            { id: 2, name: "Анна С.", initial: "АС", isMuted: false },
+            { id: 3, name: "Дмитрий К.", initial: "ДК", isMuted: false },
+            { id: 4, name: "Мария В.", initial: "МВ", isMuted: false },
+            { id: 5, name: "Алексей Н.", initial: "АН", isMuted: false },
+            { id: 6, name: "Елена С.", initial: "ЕС", isMuted: false },
+            { id: 7, name: "Сергей И.", initial: "СИ", isMuted: false },
+            { id: 8, name: "Ольга К.", initial: "ОК", isMuted: false },
+            { id: 9, name: "Павел С.", initial: "ПС", isMuted: false },
+            { id: 10, name: "Татьяна М.", initial: "ТМ", isMuted: false }
+        ];
+        
+        // История сообщений
+        let messages = [
+            { id: 1, text: "Привет всем! Кто идет на лекцию в 10:00?", sender: "Анна Сидорова", initial: "АС", time: "09:15", type: "incoming", userId: 2 },
+            { id: 2, text: "Я буду там. Говорят, будет важная информация по экзаменам", sender: "Иван Петров", initial: "ИП", time: "09:17", type: "incoming", userId: 1 },
+            { id: 3, text: "РЕКЛАМА!!! Купите мои курсы! РЕКЛАМА!!!", sender: "Спамер", initial: "СП", time: "09:18", type: "incoming", userId: 99 },
+            { id: 4, text: "Пожалуйста, не размещайте рекламу в чате", sender: "user", initial: "АД", time: "09:19", type: "outgoing", userId: 0 },
+            { id: 5, text: "ЕЩЕ БОЛЬШЕ РЕКЛАМЫ!!! КУПИТЕ ВСЕ!!!", sender: "Спамер", initial: "СП", time: "09:20", type: "incoming", userId: 99 },
+            { id: 6, text: "Я тоже приду. Кто конспекты за прошлую лекцию сфоткал?", sender: "Дмитрий Козлов", initial: "ДК", time: "09:20", type: "incoming", userId: 3 }
+        ];
+        
+        // Текущий выбранный пользователь для действий
+        let selectedUser = null;
+        let selectedMessageId = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка данных пользователя
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Загрузка данных сообщества
+            const savedCommunity = localStorage.getItem('current_community');
+            if (savedCommunity) {
+                const community = JSON.parse(savedCommunity);
+                communityData.name = community.name;
+                communityData.isAdmin = true; // Принудительно админ в этой версии
+            }
+            
+            // Загрузка участников онлайн
+            loadOnlineMembers();
+            
+            // Загрузка сообщений
+            renderMessages();
+            
+            // Загрузка списка заблокированных
+            loadMutedList();
+            
+            // Настройка автоподгрузки сообщений
+            setupAutoMessages();
+            
+            // Автоскролл вниз
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+            
+            // Имитация активности участников
+            simulateActivity();
+        });
+        
+        function loadOnlineMembers() {
+            const container = document.getElementById('onlineMembers');
+            container.innerHTML = '';
+            
+            onlineMembers.forEach(member => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'online-member';
+                memberDiv.dataset.userId = member.id;
+                memberDiv.onclick = () => selectUser(member);
+                
+                memberDiv.innerHTML = `
+                    ${member.isMuted ? '<div class="muted-badge">🔇</div>' : ''}
+                    <div class="member-avatar">${member.initial}</div>
+                    <div class="member-name">${member.name}</div>
+                `;
+                container.appendChild(memberDiv);
+            });
+        }
+        
+        function loadMutedList() {
+            const container = document.getElementById('mutedList');
+            
+            if (mutedUsers.length === 0) {
+                container.innerHTML = '<div style="color: #999; font-size: 12px; text-align: center;">Нет заблокированных пользователей</div>';
+                return;
+            }
+            
+            let html = '<div style="font-size: 12px; color: #666; margin-bottom: 10px;">Заблокированные пользователи:</div>';
+            
+            mutedUsers.forEach(user => {
+                html += `
+                    <div class="muted-user">
+                        <div class="muted-user-info">
+                            <div class="muted-user-avatar">${user.initial}</div>
+                            <div class="muted-user-name">${user.name}</div>
+                        </div>
+                        <button class="unmute-small" onclick="unmuteUser(${user.id})">
+                            Открыть рот
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Сохраняем системные сообщения и индикатор печати
+            const systemMessages = container.querySelectorAll('.system-message');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            // Очищаем контейнер
+            container.innerHTML = `
+                <div class="message-date">
+                    <span>Сегодня</span>
+                </div>
+            `;
+            
+            // Восстанавливаем системные сообщения
+            systemMessages.forEach(msg => {
+                container.appendChild(msg.cloneNode(true));
+            });
+            
+            // Добавляем сообщения
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.type}`;
+                messageDiv.dataset.id = msg.id;
+                messageDiv.dataset.userId = msg.userId;
+                
+                // Добавляем обработчик контекстного меню
+                messageDiv.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    selectedMessageId = msg.id;
+                    selectedUser = onlineMembers.find(u => u.id === msg.userId) || 
+                                 { id: msg.userId, name: msg.sender, initial: msg.initial };
+                    showMessageMenu(e, msg.id);
+                });
+                
+                // Для мобильных - долгое нажатие
+                let touchTimer;
+                messageDiv.addEventListener('touchstart', function(e) {
+                    touchTimer = setTimeout(() => {
+                        e.preventDefault();
+                        selectedMessageId = msg.id;
+                        selectedUser = onlineMembers.find(u => u.id === msg.userId) || 
+                                     { id: msg.userId, name: msg.sender, initial: msg.initial };
+                        showMessageMenu(e.touches[0]);
+                    }, 500);
+                });
+                
+                messageDiv.addEventListener('touchend', function() {
+                    clearTimeout(touchTimer);
+                });
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userInitial = userData.name ? userData.name.charAt(0) + (userData.surname ? userData.surname.charAt(0) : '') : 'АД';
+                
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">${msg.type === 'outgoing' ? userInitial : msg.initial}</div>
+                    <div class="message-content">
+                        ${msg.type === 'incoming' ? `<div class="message-sender">${msg.sender}</div>` : ''}
+                        <div class="message-bubble">${msg.text}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                
+                container.appendChild(messageDiv);
+            });
+            
+            // Восстанавливаем индикатор печати
+            container.appendChild(typingIndicator);
+            
+            // Автоскролл вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function showMessageMenu(event, messageId) {
+            const menu = document.getElementById('messageMenu');
+            
+            // Проверяем, является ли пользователь спамером
+            const isSpammer = selectedUser && selectedUser.id === 99;
+            const muteButton = document.getElementById('muteUserButton');
+            
+            if (isSpammer) {
+                muteButton.innerHTML = '<span>🔇</span><span>Закрыть рот (спамер)</span>';
+                muteButton.className = 'menu-item warning';
+            } else {
+                muteButton.innerHTML = '<span>🔇</span><span>Закрыть рот</span>';
+                muteButton.className = 'menu-item warning';
+            }
+            
+            // Позиционируем меню
+            menu.style.top = `${event.clientY || event.pageY}px`;
+            menu.style.left = `${event.clientX || event.pageX}px`;
+            menu.classList.add('active');
+            
+            // Закрытие меню при клике вне его
+            setTimeout(() => {
+                const closeMenu = (e) => {
+                    if (!menu.contains(e.target)) {
+                        menu.classList.remove('active');
+                        document.removeEventListener('click', closeMenu);
+                    }
+                };
+                document.addEventListener('click', closeMenu);
+            }, 100);
+        }
+        
+        function selectUser(user) {
+            selectedUser = user;
+            
+            // Показываем меню действий для пользователя
+            const menu = document.getElementById('adminPanel');
+            menu.style.top = 'auto';
+            menu.style.bottom = '80px';
+            menu.style.left = '20px';
+            menu.style.right = 'auto';
+            menu.classList.add('active');
+            
+            // Обновляем кнопки в зависимости от статуса пользователя
+            const controls = menu.querySelector('.admin-controls');
+            controls.innerHTML = `
+                <div style="font-size: 14px; color: #333; margin-bottom: 10px;">
+                    Действия с пользователем: <strong>${user.name}</strong>
+                </div>
+                ${user.isMuted ? 
+                    `<button class="admin-button unmute-button" onclick="unmuteUser(${user.id})">
+                        <span>🎤</span>
+                        <span>Открыть рот</span>
+                    </button>` :
+                    `<button class="admin-button mute-button" onclick="muteUser(${user.id})">
+                        <span>🔇</span>
+                        <span>Закрыть рот</span>
+                    </button>`
+                }
+                <button class="admin-button kick-button" onclick="kickUser(${user.id})">
+                    <span>🚪</span>
+                    <span>Исключить</span>
+                </button>
+            `;
+        }
+        
+        function muteUser(userId) {
+            const user = onlineMembers.find(u => u.id === userId);
+            if (!user) return;
+            
+            const reason = prompt(`Причина блокировки пользователя ${user.name}:`, "Спам в чате");
+            
+            if (reason !== null) {
+                // Добавляем в список заблокированных
+                if (!mutedUsers.some(u => u.id === userId)) {
+                    mutedUsers.push({
+                        id: userId,
+                        name: user.name,
+                        initial: user.initial,
+                        reason: reason,
+                        mutedAt: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    });
+                }
+                
+                // Обновляем статус пользователя
+                user.isMuted = true;
+                
+                // Обновляем интерфейс
+                loadOnlineMembers();
+                loadMutedList();
+                
+                // Показываем системное сообщение
+                const container = document.getElementById('messagesContainer');
+                const systemMsg = document.createElement('div');
+                systemMsg.className = 'system-message';
+                systemMsg.innerHTML = `🔇 <strong>Администратор закрыл рот пользователю ${user.name}</strong>. Причина: ${reason}`;
+                container.appendChild(systemMsg);
+                container.scrollTop = container.scrollHeight;
+                
+                // Сохраняем статус в localStorage для синхронизации
+                localStorage.setItem('user_muted', 'true');
+                
+                // Отправляем уведомление на другие страницы
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'user_muted',
+                    newValue: 'true'
+                }));
+                
+                alert(`Пользователю ${user.name} закрыт рот. Он не может отправлять сообщения.`);
+            }
+        }
+        
+        function muteUserFromMenu() {
+            if (selectedUser) {
+                muteUser(selectedUser.id);
+                document.getElementById('messageMenu').classList.remove('active');
+            }
+        }
+        
+        function unmuteUser(userId) {
+            const user = onlineMembers.find(u => u.id === userId);
+            if (!user) return;
+            
+            // Удаляем из списка заблокированных
+            mutedUsers = mutedUsers.filter(u => u.id !== userId);
+            
+            // Обновляем статус пользователя
+            user.isMuted = false;
+            
+            // Обновляем интерфейс
+            loadOnlineMembers();
+            loadMutedList();
+            
+            // Показываем системное сообщение
+            const container = document.getElementById('messagesContainer');
+            const systemMsg = document.createElement('div');
+            systemMsg.className = 'system-message';
+            systemMsg.innerHTML = `🎤 <strong>Администратор открыл рот пользователю ${user.name}</strong>`;
+            container.appendChild(systemMsg);
+            container.scrollTop = container.scrollHeight;
+            
+            // Снимаем мут в localStorage
+            localStorage.setItem('user_muted', 'false');
+            
+            // Отправляем уведомление на другие страницы
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'user_muted',
+                newValue: 'false'
+            }));
+            
+            alert(`Пользователю ${user.name} снова разрешено отправлять сообщения.`);
+        }
+        
+        function kickUser(userId) {
+            const user = onlineMembers.find(u => u.id === userId);
+            if (!user) return;
+            
+            if (confirm(`Вы уверены, что хотите исключить пользователя ${user.name} из сообщества?`)) {
+                // В реальном приложении здесь был бы запрос к серверу
+                alert(`Пользователь ${user.name} исключен из сообщества.`);
+                
+                // Показываем системное сообщение
+                const container = document.getElementById('messagesContainer');
+                const systemMsg = document.createElement('div');
+                systemMsg.className = 'system-message';
+                systemMsg.innerHTML = `🚪 <strong>Пользователь ${user.name} исключен из сообщества</strong>`;
+                container.appendChild(systemMsg);
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        function replyToMessage() {
+            const message = messages.find(m => m.id == selectedMessageId);
+            
+            if (message) {
+                const input = document.getElementById('messageInput');
+                input.value = `Ответ на: "${message.text}"\n`;
+                input.focus();
+                autoResize(input);
+            }
+            
+            document.getElementById('messageMenu').classList.remove('active');
+        }
+        
+        function copyMessage() {
+            const message = messages.find(m => m.id == selectedMessageId);
+            
+            if (message) {
+                navigator.clipboard.writeText(message.text)
+                    .then(() => alert('Сообщение скопировано'))
+                    .catch(() => alert('Не удалось скопировать'));
+            }
+            
+            document.getElementById('messageMenu').classList.remove('active');
+        }
+        
+        function deleteMessage() {
+            const message = messages.find(m => m.id == selectedMessageId);
+            
+            if (message && confirm('Удалить это сообщение?')) {
+                messages = messages.filter(m => m.id != selectedMessageId);
+                renderMessages();
+                alert('Сообщение удалено');
+            }
+            
+            document.getElementById('messageMenu').classList.remove('active');
+        }
+        
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Показываем индикатор печати
+            if (textarea.value.length > 0) {
+                showTypingIndicator();
+            } else {
+                hideTypingIndicator();
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText) {
+                // Добавляем новое сообщение
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+                
+                const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+                const userName = userData.name || 'Администратор';
+                
+                const newMessage = {
+                    id: messages.length + 1,
+                    text: messageText,
+                    sender: userName + ' (админ)',
+                    initial: userData.name ? userData.name.charAt(0) : 'АД',
+                    time: time,
+                    type: 'outgoing',
+                    userId: 0
+                };
+                
+                messages.push(newMessage);
+                renderMessages();
+                
+                // Очищаем поле ввода
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Скрываем индикатор печати
+                hideTypingIndicator();
+            }
+        }
+        
+        function setupAutoMessages() {
+            // Автоматические сообщения для демо активности
+            setInterval(() => {
+                if (Math.random() > 0.7 && messages.length < 20) {
+                    const randomUser = onlineMembers[Math.floor(Math.random() * onlineMembers.length)];
+                    const autoMessages = [
+                        "Кто-нибудь знает расписание на завтра?",
+                        "Есть новости по стипендиям?",
+                        "Напоминаю про дедлайн по проекту!",
+                        "Кто хочет в библиотеку после пар?"
+                    ];
+                    
+                    const randomMessage = autoMessages[Math.floor(Math.random() * autoMessages.length)];
+                    const now = new Date();
+                    const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                                now.getMinutes().toString().padStart(2, '0');
+                    
+                    const autoMessage = {
+                        id: messages.length + 1,
+                        text: randomMessage,
+                        sender: randomUser.name,
+                        initial: randomUser.initial,
+                        time: time,
+                        type: 'incoming',
+                        userId: randomUser.id
+                    };
+                    
+                    messages.push(autoMessage);
+                    renderMessages();
+                }
+            }, 15000);
+        }
+        
+        function simulateActivity() {
+            // Случайное появление "печатает..."
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    const randomUser = onlineMembers[Math.floor(Math.random() * onlineMembers.length)];
+                    showTypingIndicator(randomUser.name);
+                    setTimeout(hideTypingIndicator, 2000 + Math.random() * 3000);
+                }
+            }, 10000);
+        }
+        
+        function showTypingIndicator(userName) {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.querySelector('span:last-child').textContent = `${userName} печатает...`;
+            indicator.classList.add('active');
+            
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+        
+        function attachFile() {
+            alert('В полной версии здесь будет выбор файлов для отправки');
+        }
+        
+        function toggleEmojiPicker() {
+            alert('В полной версии здесь будет панель эмодзи');
+        }
+        
+        function showMembers() {
+            alert(`Управление участниками:\n\nВсего: ${communityData.members}\nОнлайн: ${communityData.online}\nЗаблокировано: ${mutedUsers.length}\n\nКак администратор вы можете блокировать пользователей и управлять сообществом.`);
+        }
+        
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.classList.toggle('active');
+            
+            // Позиционируем панель
+            if (panel.classList.contains('active')) {
+                panel.style.top = 'auto';
+                panel.style.bottom = '80px';
+                panel.style.right = '20px';
+                panel.style.left = 'auto';
+            }
+        }
+        
+        function openCommunitySettings() {
+            alert('Настройки сообщества:\n\n• Изменить название и описание\n• Настройки приватности\n• Управление администраторами\n• Настройки модерации\n• Экспорт данных\n\nВ полной версии здесь будет полный набор настроек.');
+        }
+        
+        // Закрытие панелей при клике вне их
+        document.addEventListener('click', function(event) {
+            const adminPanel = document.getElementById('adminPanel');
+            const messageMenu = document.getElementById('messageMenu');
+            
+            if (!adminPanel.contains(event.target) && 
+                !event.target.closest('.header-action:first-child')) {
+                adminPanel.classList.remove('active');
+            }
+            
+            if (!messageMenu.contains(event.target)) {
+                messageMenu.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
