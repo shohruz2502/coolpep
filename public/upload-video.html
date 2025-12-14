@@ -42,7 +42,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            text-decoration: none;
         }
         
         h1 {
@@ -269,14 +268,13 @@
             border: 2px solid white;
         }
         
-        .duration-display {
+        .duration-input {
             display: flex;
             gap: 10px;
             align-items: center;
-            margin-top: 10px;
         }
         
-        .duration-display input {
+        .duration-input input {
             flex: 1;
         }
         
@@ -284,95 +282,14 @@
             white-space: nowrap;
             opacity: 0.8;
         }
-        
-        /* Контейнер для двухэтапной загрузки */
-        .upload-steps {
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        .step-indicator::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 30px;
-            right: 30px;
-            height: 2px;
-            background: rgba(255,255,255,0.2);
-            z-index: 1;
-        }
-        
-        .step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .step.active {
-            background: white;
-            color: #667eea;
-            font-weight: bold;
-        }
-        
-        .step.completed {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        .step-label {
-            position: absolute;
-            top: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        
-        /* Конвертация прогресс */
-        .conversion-progress {
-            text-align: center;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .conversion-progress .progress-bar {
-            height: 8px;
-            margin: 10px 0;
-        }
-        
-        /* Анимация загрузки */
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="reels-feed.html" class="back-button">←</a>
+        <button class="back-button" onclick="window.location.href='reels-feed.html'">←</button>
         
         <h1>📹 Загрузить Reel</h1>
         
-        <!-- Область загрузки -->
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
             <div class="upload-text">Нажмите для выбора видео</div>
@@ -382,10 +299,8 @@
             <input type="file" id="fileInput" class="file-input" accept="video/*">
         </div>
         
-        <!-- Превью видео -->
         <video class="video-preview" id="videoPreview" controls></video>
         
-        <!-- Информация о файле -->
         <div class="file-info" id="fileInfo">
             <div class="file-info-item">
                 <span class="file-info-label">Файл:</span>
@@ -405,22 +320,12 @@
             </div>
         </div>
         
-        <!-- Шаги загрузки -->
-        <div class="upload-steps" id="uploadSteps">
-            <div class="step-indicator">
-                <div class="step active" id="step1">1</div>
-                <div class="step" id="step2">2</div>
-            </div>
-        </div>
-        
-        <!-- Поле для описания -->
-        <div class="form-group" id="captionGroup" style="display: none;">
+        <div class="form-group">
             <label for="caption">Описание</label>
             <textarea id="caption" placeholder="Добавьте описание к вашему видео... #хештеги"></textarea>
         </div>
         
-        <!-- Поле для музыки -->
-        <div class="form-group" id="musicGroup" style="display: none;">
+        <div class="form-group">
             <label for="music">Музыка / Звук</label>
             <select id="music">
                 <option value="">Без звука</option>
@@ -434,55 +339,39 @@
             </select>
         </div>
         
-        <!-- Длительность -->
-        <div class="form-group" id="durationGroup" style="display: none;">
-            <label>Длительность видео</label>
-            <div class="duration-display">
-                <input type="number" id="duration" min="1" max="300" step="1" readonly>
-                <span class="duration-unit">секунд</span>
-            </div>
+        <div class="form-group duration-input">
+            <label for="duration">Длительность (секунды)</label>
+            <input type="number" id="duration" min="1" max="300" value="15" step="1">
+            <span class="duration-unit">сек</span>
         </div>
         
-        <!-- Выбор пользователя -->
-        <div class="form-group test-user-select" id="userGroup" style="display: none;">
-            <label>Выберите пользователя:</label>
-            <div class="test-user-option" onclick="selectUser('11111111-1111-1111-1111-111111111111', 'Иван Иванов')">
+        <div class="form-group test-user-select">
+            <label>Выберите тестового пользователя:</label>
+            <div class="test-user-option" onclick="selectUser('11111111-1111-1111-1111-111111111111', 'Иван Иванов', this)">
                 <strong>Иван Иванов</strong><br>
-                <small>ID: 11111111-1111-1111-1111-111111111111</small>
+                <small>11111111-1111-1111-1111-111111111111</small>
             </div>
-            <div class="test-user-option" onclick="selectUser('22222222-2222-2222-2222-222222222222', 'Анна Петрова')">
+            <div class="test-user-option" onclick="selectUser('22222222-2222-2222-2222-222222222222', 'Анна Петрова', this)">
                 <strong>Анна Петрова</strong><br>
-                <small>ID: 22222222-2222-2222-2222-222222222222</small>
+                <small>22222222-2222-2222-2222-222222222222</small>
             </div>
-            <div class="test-user-option" onclick="selectUser('33333333-3333-3333-3333-333333333333', 'Дмитрий Сидоров')">
+            <div class="test-user-option" onclick="selectUser('33333333-3333-3333-3333-333333333333', 'Дмитрий Сидоров', this)">
                 <strong>Дмитрий Сидоров</strong><br>
-                <small>ID: 33333333-3333-3333-3333-333333333333</small>
+                <small>33333333-3333-3333-3333-333333333333</small>
             </div>
         </div>
         
         <input type="hidden" id="userId" value="">
         
-        <!-- Прогресс конвертации -->
-        <div class="conversion-progress" id="conversionProgress">
-            <div id="conversionStatus">Конвертация видео...</div>
-            <div class="progress-container">
-                <div class="progress-bar" id="conversionBar"></div>
-            </div>
-            <small id="conversionTime">Пожалуйста, подождите...</small>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
         </div>
         
-        <!-- Основной прогресс -->
-        <div class="progress-container" id="uploadProgress">
-            <div class="progress-bar" id="uploadBar"></div>
-        </div>
-        
-        <!-- Сообщения о статусе -->
         <div class="status-message info" id="statusMessage">
             Выберите видео файл для загрузки
         </div>
         
-        <!-- Кнопка загрузки -->
-        <button class="upload-button" id="uploadButton" onclick="startUpload()" disabled>
+        <button class="upload-button" id="uploadButton" onclick="uploadVideo()" disabled>
             <span id="uploadIcon">📤</span>
             <span id="uploadText">Загрузить Reel</span>
         </button>
@@ -501,29 +390,16 @@
         const uploadButton = document.getElementById('uploadButton');
         const uploadIcon = document.getElementById('uploadIcon');
         const uploadText = document.getElementById('uploadText');
-        const uploadProgress = document.getElementById('uploadProgress');
-        const uploadBar = document.getElementById('uploadBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
         const statusMessage = document.getElementById('statusMessage');
         const captionInput = document.getElementById('caption');
         const musicInput = document.getElementById('music');
         const durationInput = document.getElementById('duration');
         const userIdInput = document.getElementById('userId');
-        const captionGroup = document.getElementById('captionGroup');
-        const musicGroup = document.getElementById('musicGroup');
-        const durationGroup = document.getElementById('durationGroup');
-        const userGroup = document.getElementById('userGroup');
-        const uploadSteps = document.getElementById('uploadSteps');
-        const conversionProgress = document.getElementById('conversionProgress');
-        const conversionBar = document.getElementById('conversionBar');
-        const conversionStatus = document.getElementById('conversionStatus');
-        const conversionTime = document.getElementById('conversionTime');
         
-        // Глобальные переменные
         let selectedFile = null;
-        let videoDuration = 0;
-        let selectedUserId = '';
-        let selectedUserName = '';
-        let videoBase64 = '';
+        let selectedVideoDuration = 15;
         
         // Обработчики событий для области загрузки
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -552,6 +428,38 @@
             }
         });
         
+        // Выбор тестового пользователя
+        function selectUser(userId, userName, element) {
+            // Убираем выделение у всех
+            document.querySelectorAll('.test-user-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Добавляем выделение выбранному
+            if (element) {
+                element.classList.add('selected');
+            } else {
+                // Альтернативный способ: найти элемент по userId
+                document.querySelectorAll('.test-user-option').forEach(option => {
+                    if (option.textContent.includes(userId)) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+            
+            // Сохраняем ID пользователя
+            userIdInput.value = userId;
+            
+            // Обновляем статус
+            statusMessage.textContent = `Выбран пользователь: ${userName}`;
+            statusMessage.className = 'status-message info';
+            
+            // Включаем кнопку если выбран файл
+            if (selectedFile) {
+                uploadButton.disabled = false;
+            }
+        }
+        
         // Обработка выбранного файла
         function handleFile(file) {
             // Проверка типа файла
@@ -576,6 +484,11 @@
             fileType.textContent = file.type.split('/')[1].toUpperCase();
             fileInfo.style.display = 'block';
             
+            // Включаем кнопку загрузки если выбран пользователь
+            if (userIdInput.value) {
+                uploadButton.disabled = false;
+            }
+            
             // Показываем превью видео
             const videoURL = URL.createObjectURL(file);
             videoPreview.src = videoURL;
@@ -583,248 +496,145 @@
             
             // Получаем длительность видео
             videoPreview.onloadedmetadata = () => {
-                videoDuration = Math.round(videoPreview.duration);
-                fileDuration.textContent = `${videoDuration} секунд`;
-                durationInput.value = videoDuration;
+                selectedVideoDuration = Math.round(videoPreview.duration);
+                fileDuration.textContent = `${selectedVideoDuration} секунд`;
+                durationInput.value = selectedVideoDuration;
                 
-                if (videoDuration > 300) {
+                if (selectedVideoDuration > 300) {
                     showInfo('Длительность видео ограничена 5 минутами');
                 }
             };
             
-            showInfo('Файл выбран. Теперь заполните информацию ниже.');
-            
-            // Показываем форму для заполнения
-            showForm();
+            showInfo('Файл выбран. Теперь выберите пользователя и нажмите "Загрузить Reel"');
         }
         
-        // Показать форму для заполнения
-        function showForm() {
-            captionGroup.style.display = 'block';
-            musicGroup.style.display = 'block';
-            durationGroup.style.display = 'block';
-            userGroup.style.display = 'block';
-            uploadSteps.style.display = 'block';
-            
-            // Включаем кнопку, когда пользователь выбран
-            if (selectedUserId) {
-                uploadButton.disabled = false;
-            }
-            
-            // Обновляем шаги
-            updateStep(1);
-        }
-        
-        // Выбор пользователя
-        function selectUser(userId, userName) {
-            // Убираем выделение у всех
-            document.querySelectorAll('.test-user-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Добавляем выделение выбранному
-            event.currentTarget.classList.add('selected');
-            
-            // Сохраняем данные пользователя
-            selectedUserId = userId;
-            selectedUserName = userName;
-            userIdInput.value = userId;
-            
-            // Включаем кнопку загрузки
-            uploadButton.disabled = false;
-            
-            // Обновляем статус
-            showInfo(`Выбран пользователь: ${userName}`);
-            
-            // Обновляем шаги
-            updateStep(2);
-        }
-        
-        // Обновление шагов
-        function updateStep(step) {
-            // Сбрасываем все шаги
-            document.getElementById('step1').classList.remove('active', 'completed');
-            document.getElementById('step2').classList.remove('active', 'completed');
-            
-            if (step === 1) {
-                document.getElementById('step1').classList.add('active');
-            } else if (step === 2) {
-                document.getElementById('step1').classList.add('completed');
-                document.getElementById('step2').classList.add('active');
-            }
-        }
-        
-        // Начать загрузку
-        async function startUpload() {
+        // Загрузка видео на сервер
+        async function uploadVideo() {
             if (!selectedFile) {
                 showError('Пожалуйста, выберите видео файл');
                 return;
             }
             
-            if (!selectedUserId) {
+            const userId = userIdInput.value.trim();
+            if (!userId) {
                 showError('Пожалуйста, выберите пользователя');
                 return;
             }
             
-            const caption = captionInput.value.trim() || '';
-            const music = musicInput.value || '';
-            const duration = videoDuration;
+            const caption = captionInput.value.trim();
+            const music = musicInput.value;
+            const duration = parseInt(durationInput.value) || selectedVideoDuration;
             
-            // Показываем индикатор конвертации
-            showConversionProgress();
+            // Показываем прогресс
+            progressContainer.style.display = 'block';
+            uploadButton.disabled = true;
+            uploadIcon.textContent = '⏳';
+            uploadText.textContent = 'Загрузка...';
+            showInfo('Чтение файла...');
             
-            try {
-                // Конвертируем видео в Base64
-                videoBase64 = await convertVideoToBase64(selectedFile);
-                
-                // Скрываем прогресс конвертации
-                hideConversionProgress();
-                
-                // Отправляем на сервер
-                await uploadToServer(videoBase64, caption, music, duration);
-                
-            } catch (error) {
-                hideConversionProgress();
-                showError('Ошибка загрузки: ' + error.message);
+            // Читаем файл как Base64
+            const reader = new FileReader();
+            
+            reader.onloadstart = () => {
+                showInfo('Начало чтения файла...');
+            };
+            
+            reader.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    showInfo(`Чтение файла: ${percent}%`);
+                }
+            };
+            
+            reader.onload = async (e) => {
+                try {
+                    const videoBase64 = e.target.result;
+                    showInfo('Файл прочитан. Отправка на сервер...');
+                    
+                    // Подготовка данных для отправки
+                    const videoData = {
+                        userId: userId,
+                        videoBase64: videoBase64,
+                        filename: selectedFile.name,
+                        fileSize: selectedFile.size,
+                        mimeType: selectedFile.type,
+                        caption: caption,
+                        music: music,
+                        duration: duration
+                    };
+                    
+                    // Отправка на сервер
+                    const response = await fetch('/api/reels/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(videoData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showSuccess('Reel успешно загружен!');
+                        progressBar.style.background = '#4CAF50';
+                        
+                        // Очищаем форму через 2 секунды
+                        setTimeout(() => {
+                            resetForm();
+                            window.location.href = 'reels-feed.html';
+                        }, 2000);
+                        
+                    } else {
+                        showError(result.error || 'Ошибка при загрузке');
+                        uploadButton.disabled = false;
+                        uploadIcon.textContent = '📤';
+                        uploadText.textContent = 'Загрузить Reel';
+                    }
+                    
+                } catch (error) {
+                    showError('Ошибка при отправке: ' + error.message);
+                    uploadButton.disabled = false;
+                    uploadIcon.textContent = '📤';
+                    uploadText.textContent = 'Загрузить Reel';
+                }
+            };
+            
+            reader.onerror = () => {
+                showError('Ошибка при чтении файла');
                 uploadButton.disabled = false;
                 uploadIcon.textContent = '📤';
                 uploadText.textContent = 'Загрузить Reel';
-            }
+            };
+            
+            // Начинаем чтение файла
+            reader.readAsDataURL(selectedFile);
         }
         
-        // Конвертация видео в Base64
-        function convertVideoToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                let startTime = Date.now();
-                
-                reader.onloadstart = () => {
-                    conversionStatus.textContent = 'Начало чтения файла...';
-                    conversionTime.textContent = 'Пожалуйста, подождите...';
-                };
-                
-                reader.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        conversionBar.style.width = percent + '%';
-                        
-                        // Рассчитываем оставшееся время
-                        const elapsed = Date.now() - startTime;
-                        const estimatedTotal = (elapsed / percent) * 100;
-                        const remaining = Math.max(0, (estimatedTotal - elapsed) / 1000);
-                        
-                        conversionStatus.textContent = `Конвертация видео: ${percent}%`;
-                        
-                        if (remaining > 60) {
-                            conversionTime.textContent = `Осталось: ${Math.round(remaining / 60)} мин`;
-                        } else if (remaining > 10) {
-                            conversionTime.textContent = `Осталось: ${Math.round(remaining)} сек`;
-                        } else if (percent < 100) {
-                            conversionTime.textContent = 'Завершаем конвертацию...';
-                        }
-                    }
-                };
-                
-                reader.onload = (e) => {
-                    const base64 = e.target.result;
-                    
-                    // Проверяем размер Base64
-                    const base64Size = (base64.length * 3) / 4; // Примерный размер в байтах
-                    if (base64Size > 10 * 1024 * 1024) {
-                        reject(new Error('Размер файла после конвертации превышает 10MB'));
-                        return;
-                    }
-                    
-                    resolve(base64);
-                };
-                
-                reader.onerror = () => {
-                    reject(new Error('Ошибка при чтении файла'));
-                };
-                
-                reader.onabort = () => {
-                    reject(new Error('Чтение файла прервано'));
-                };
-                
-                // Начинаем чтение
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        // Загрузка на сервер
-        async function uploadToServer(videoBase64, caption, music, duration) {
-            try {
-                // Показываем прогресс загрузки
-                uploadProgress.style.display = 'block';
-                uploadButton.disabled = true;
-                uploadIcon.textContent = '⏳';
-                uploadText.textContent = 'Отправка на сервер...';
-                
-                // Подготавливаем данные
-                const videoData = {
-                    userId: selectedUserId,
-                    videoBase64: videoBase64,
-                    filename: selectedFile.name,
-                    fileSize: selectedFile.size,
-                    mimeType: selectedFile.type,
-                    caption: caption,
-                    music: music,
-                    duration: duration
-                };
-                
-                console.log('Отправка данных:', {
-                    userId: selectedUserId,
-                    filename: selectedFile.name,
-                    fileSize: formatFileSize(selectedFile.size),
-                    captionLength: caption.length,
-                    music: music,
-                    duration: duration
-                });
-                
-                // Отправляем запрос
-                const response = await fetch('/api/reels/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(videoData)
-                });
-                
-                // Обновляем прогресс
-                uploadBar.style.width = '100%';
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showSuccess('Reel успешно загружен!');
-                    
-                    // Перенаправляем на страницу с Reels через 2 секунды
-                    setTimeout(() => {
-                        window.location.href = 'reels-feed.html';
-                    }, 2000);
-                    
-                } else {
-                    throw new Error(result.error || 'Ошибка при загрузке');
-                }
-                
-            } catch (error) {
-                console.error('Ошибка отправки:', error);
-                throw error;
-            }
-        }
-        
-        // Показать прогресс конвертации
-        function showConversionProgress() {
-            conversionProgress.style.display = 'block';
+        // Сброс формы
+        function resetForm() {
+            selectedFile = null;
+            fileInput.value = '';
+            videoPreview.src = '';
+            videoPreview.style.display = 'none';
+            fileInfo.style.display = 'none';
+            captionInput.value = '';
+            musicInput.value = '';
+            durationInput.value = '15';
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.style.background = '#4CAF50';
             uploadButton.disabled = true;
-            uploadIcon.textContent = '🔄';
-            uploadText.textContent = 'Конвертация...';
-            conversionBar.style.width = '0%';
-        }
-        
-        // Скрыть прогресс конвертации
-        function hideConversionProgress() {
-            conversionProgress.style.display = 'none';
+            uploadIcon.textContent = '📤';
+            uploadText.textContent = 'Загрузить Reel';
+            statusMessage.textContent = 'Выберите видео файл для загрузки';
+            statusMessage.className = 'status-message info';
+            
+            // Сброс выбора пользователя
+            document.querySelectorAll('.test-user-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            userIdInput.value = '';
         }
         
         // Вспомогательные функции
@@ -851,37 +661,25 @@
             statusMessage.className = 'status-message info';
         }
         
-        // Проверка соединения с сервером
-        async function checkServerConnection() {
+        // Загружаем несколько тестовых видео при первой загрузке страницы
+        window.addEventListener('load', async () => {
             try {
                 const response = await fetch('/api/health');
                 const data = await response.json();
                 
-                if (data.status === 'OK') {
-                    console.log('Сервер доступен:', data);
-                    return true;
-                } else {
-                    console.warn('Сервер отвечает с ошибкой:', data);
-                    return false;
+                if (data.reels_count === 0) {
+                    const createTest = confirm('На сервере пока нет Reels. Хотите создать тестовые данные?');
+                    if (createTest) {
+                        showInfo('Создание тестовых данных...');
+                        const testResponse = await fetch('/api/reels/create-test', { method: 'POST' });
+                        const testData = await testResponse.json();
+                        if (testData.success) {
+                            showSuccess(`Создано ${testData.reels.length} тестовых видео!`);
+                        }
+                    }
                 }
             } catch (error) {
-                console.error('Сервер недоступен:', error);
-                showInfo('Сервер временно недоступен. Работаем в офлайн-режиме.');
-                return false;
-            }
-        }
-        
-        // Инициализация при загрузке страницы
-        window.addEventListener('load', async () => {
-            // Проверяем соединение с сервером
-            await checkServerConnection();
-            
-            // Загружаем сохраненного пользователя
-            const savedUser = localStorage.getItem('coolpep_current_user');
-            if (savedUser) {
-                const user = JSON.parse(savedUser);
-                // Автоматически выбираем пользователя
-                selectUser(user.id, user.name);
+                console.log('Не удалось проверить наличие Reels:', error);
             }
         });
     </script>
