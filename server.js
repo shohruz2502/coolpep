@@ -640,6 +640,38 @@ async function initializeTables() {
     await pool.query(tablesSQL);
     console.log('✅ Таблицы созданы/проверены');
     
+    // Миграция: добавляем колонку video_base64 если её нет
+    try {
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'reels' AND column_name = 'video_base64'
+      `);
+      
+      if (columnCheck.rows.length === 0) {
+        // Если таблица существует без video_base64, добавляем колонку
+        await pool.query(`
+          ALTER TABLE reels 
+          ADD COLUMN IF NOT EXISTS video_base64 TEXT,
+          ADD COLUMN IF NOT EXISTS video_filename VARCHAR(255),
+          ADD COLUMN IF NOT EXISTS file_size INTEGER,
+          ADD COLUMN IF NOT EXISTS mime_type VARCHAR(50),
+          ADD COLUMN IF NOT EXISTS duration INTEGER
+        `);
+        
+        // Если есть старые данные с video_url, можно их мигрировать
+        // Но для новых записей video_base64 обязателен
+        await pool.query(`
+          ALTER TABLE reels 
+          ALTER COLUMN video_base64 SET NOT NULL
+        `);
+        
+        console.log('✅ Миграция таблицы reels выполнена');
+      }
+    } catch (migrationError) {
+      console.log('⚠️ Миграция не требуется или уже выполнена:', migrationError.message);
+    }
+    
   } catch (error) {
     console.error('❌ Ошибка создания таблиц:', error.message);
   }
