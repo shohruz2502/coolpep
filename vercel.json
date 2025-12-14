@@ -9,31 +9,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server.js",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+      "dest": "server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "public/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=3600"
-      }
-    },
-    {
-      "src": "/",
-      "dest": "public/index.html",
-      "headers": {
-        "Cache-Control": "public, max-age=3600"
-      }
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/public/index.html"
+      "dest": "server.js"
     }
   ]
 }
