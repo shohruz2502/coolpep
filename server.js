@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
 require('dotenv').config();
 
 // Инициализация приложения
@@ -67,7 +68,12 @@ const otherPages = [
 // Автоматически создаем маршруты для всех HTML файлов
 otherPages.forEach(page => {
   app.get(`/${page}`, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', `${page}.html`));
+    const filePath = path.join(__dirname, 'public', `${page}.html`);
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.redirect('/');
+    }
   });
 });
 
@@ -75,7 +81,11 @@ otherPages.forEach(page => {
 app.get('/:page.html', (req, res) => {
   const page = req.params.page;
   const filePath = path.join(__dirname, 'public', `${page}.html`);
-  res.sendFile(filePath);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.redirect('/');
+  }
 });
 
 // ============= ПРОВЕРКА БАЗЫ ДАННЫХ =============
@@ -98,12 +108,19 @@ pool.connect((err, client, release) => {
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
+    
+    // Проверяем количество reels
+    const reelsResult = await pool.query('SELECT COUNT(*) FROM reels');
+    const usersResult = await pool.query('SELECT COUNT(*) FROM users');
+    
     res.json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
       database: 'Connected',
       server: 'Coolpep Social Platform',
-      version: '1.0.0'
+      version: '1.0.0',
+      reels_count: parseInt(reelsResult.rows[0].count),
+      users_count: parseInt(usersResult.rows[0].count)
     });
   } catch (error) {
     res.status(500).json({ 
@@ -114,7 +131,7 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// 2. Загрузка видео Reel (Base64)
+// 2. Загрузка видео Reel (Base64) - ИСПРАВЛЕННАЯ ВЕРСИЯ
 app.post('/api/reels/upload', async (req, res) => {
   try {
     // Убеждаемся, что таблицы инициализированы
@@ -133,27 +150,88 @@ app.post('/api/reels/upload', async (req, res) => {
     }
     
     // Проверка формата Base64
-    if (!videoBase64.startsWith('data:video/')) {
+    if (!videoBase64.startsWith('data:video/') && !videoBase64.startsWith('data:image/')) {
       return res.status(400).json({ error: 'Неверный формат видео' });
     }
     
-    // Сохраняем в базу данных
+    // Убедимся, что все необходимые столбцы существуют
+    try {
+      await pool.query(`
+        ALTER TABLE reels 
+        ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS duration INTEGER
+      `);
+    } catch (alterError) {
+      console.log('ℹ️ Столбцы уже существуют или другая ошибка:', alterError.message);
+    }
+    
+    // Сохраняем в базу данных - используем только существующие столбцы
     const result = await pool.query(`
-      INSERT INTO reels (user_id, video_base64, video_filename, file_size, mime_type, caption, music, duration)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, user_id, caption, music, likes_count, views_count, duration, created_at
+      INSERT INTO reels (user_id, video_base64, video_filename, file_size, mime_type, caption, music, duration, views_count, likes_count)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0)
+      RETURNING id, user_id, caption, music, duration, created_at
     `, [userId, videoBase64, filename || 'video.mp4', fileSize || 0, mimeType || 'video/mp4', 
         caption || '', music || '', duration || 15]);
     
+    // Получаем полную информацию о загруженном reel
+    const reelResult = await pool.query(`
+      SELECT r.*, u.name as user_name, u.avatar_url as user_avatar, u.bio as user_bio
+      FROM reels r
+      LEFT JOIN users u ON r.user_id = u.id
+      WHERE r.id = $1
+    `, [result.rows[0].id]);
+    
+    const reel = reelResult.rows[0];
+    
+    // Форматируем ответ
+    const responseReel = {
+      id: reel.id,
+      user_id: reel.user_id,
+      caption: reel.caption,
+      music: reel.music,
+      likes_count: reel.likes_count || 0,
+      views_count: reel.views_count || 0,
+      duration: reel.duration || 15,
+      created_at: reel.created_at,
+      user_name: reel.user_name || 'Пользователь',
+      user_avatar: reel.user_avatar || '👤',
+      user_bio: reel.user_bio || '',
+      is_liked: false,
+      actual_likes: reel.likes_count || 0,
+      video_filename: reel.video_filename,
+      file_size: reel.file_size,
+      mime_type: reel.mime_type
+    };
+    
     res.json({
       success: true,
-      reel: result.rows[0],
+      reel: responseReel,
       message: 'Reel успешно загружен'
     });
     
   } catch (error) {
     console.error('❌ Ошибка загрузки видео:', error);
-    res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
+    
+    // Детальная диагностика ошибки
+    if (error.message.includes('column "views_count" does not exist')) {
+      console.log('🔄 Попытка исправить структуру таблицы...');
+      try {
+        // Создаем таблицы заново
+        await pool.query('DROP TABLE IF EXISTS reel_likes CASCADE');
+        await pool.query('DROP TABLE IF EXISTS reels CASCADE');
+        await initializeTables();
+        
+        res.status(500).json({ 
+          error: 'Структура таблицы была исправлена. Пожалуйста, попробуйте загрузить видео снова.' 
+        });
+      } catch (fixError) {
+        console.error('❌ Не удалось исправить таблицу:', fixError);
+        res.status(500).json({ error: 'Ошибка сервера. Попробуйте перезапустить приложение.' });
+      }
+    } else {
+      res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
+    }
   }
 });
 
@@ -184,26 +262,59 @@ app.get('/api/reels/feed', async (req, res) => {
       });
     }
     
+    // Проверяем наличие необходимых столбцов
+    try {
+      await pool.query(`
+        ALTER TABLE reels 
+        ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS duration INTEGER
+      `);
+    } catch (alterError) {
+      console.log('ℹ️ Столбцы уже существуют:', alterError.message);
+    }
+    
     // Получаем Reels с информацией о пользователе
-    const result = await pool.query(`
+    let query = `
       SELECT r.id, r.user_id, r.video_filename, r.file_size, r.mime_type, r.caption, r.music, 
-             r.likes_count, r.views_count, r.duration, r.created_at,
-             u.name as user_name, u.surname as user_surname, u.avatar_url as user_avatar, u.bio as user_bio,
-             CASE WHEN rl.user_id IS NOT NULL THEN true ELSE false END as is_liked,
-             (SELECT COUNT(*) FROM reel_likes WHERE reel_id = r.id) as actual_likes
+             COALESCE(r.likes_count, 0) as likes_count, 
+             COALESCE(r.views_count, 0) as views_count, 
+             COALESCE(r.duration, 15) as duration, r.created_at,
+             u.name as user_name, u.avatar_url as user_avatar, u.bio as user_bio
       FROM reels r
       LEFT JOIN users u ON r.user_id = u.id
-      LEFT JOIN reel_likes rl ON r.id = rl.reel_id AND rl.user_id = $1
       ORDER BY r.created_at DESC
-      LIMIT $2 OFFSET $3
-    `, [userId || null, parseInt(limit), parseInt(offset)]);
+      LIMIT $1 OFFSET $2
+    `;
+    
+    let params = [parseInt(limit), parseInt(offset)];
+    
+    if (userId) {
+      query = `
+        SELECT r.id, r.user_id, r.video_filename, r.file_size, r.mime_type, r.caption, r.music, 
+               COALESCE(r.likes_count, 0) as likes_count, 
+               COALESCE(r.views_count, 0) as views_count, 
+               COALESCE(r.duration, 15) as duration, r.created_at,
+               u.name as user_name, u.avatar_url as user_avatar, u.bio as user_bio,
+               CASE WHEN rl.user_id IS NOT NULL THEN true ELSE false END as is_liked,
+               COALESCE(r.likes_count, 0) as actual_likes
+        FROM reels r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN reel_likes rl ON r.id = rl.reel_id AND rl.user_id = $3
+        ORDER BY r.created_at DESC
+        LIMIT $1 OFFSET $2
+      `;
+      params = [parseInt(limit), parseInt(offset), userId];
+    }
+    
+    const result = await pool.query(query, params);
     
     // Увеличиваем счетчик просмотров
     if (result.rows.length > 0) {
       const reelIds = result.rows.map(r => r.id);
       await pool.query(`
         UPDATE reels 
-        SET views_count = views_count + 1 
+        SET views_count = COALESCE(views_count, 0) + 1 
         WHERE id = ANY($1::uuid[])
       `, [reelIds]);
     }
@@ -211,16 +322,26 @@ app.get('/api/reels/feed', async (req, res) => {
     // Получаем общее количество
     const totalResult = await pool.query('SELECT COUNT(*) FROM reels');
     
+    // Форматируем ответ
+    const reels = result.rows.map(reel => ({
+      ...reel,
+      user_name: reel.user_name || 'Пользователь',
+      user_avatar: reel.user_avatar || '👤',
+      user_bio: reel.user_bio || '',
+      is_liked: reel.is_liked || false,
+      actual_likes: reel.actual_likes || reel.likes_count || 0
+    }));
+    
     // Если нет релсов, возвращаем демо
-    const reels = result.rows.length > 0 ? result.rows : getDemoReels();
+    const finalReels = reels.length > 0 ? reels : getDemoReels();
     
     res.json({ 
       success: true, 
-      reels: reels,
+      reels: finalReels,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: parseInt(totalResult.rows[0]?.count || reels.length)
+        total: parseInt(totalResult.rows[0]?.count || finalReels.length)
       }
     });
     
@@ -266,7 +387,7 @@ app.get('/api/reels/:id/video', async (req, res) => {
     }
     
     // Увеличиваем счетчик просмотров
-    await pool.query('UPDATE reels SET views_count = views_count + 1 WHERE id = $1', [reelId]);
+    await pool.query('UPDATE reels SET views_count = COALESCE(views_count, 0) + 1 WHERE id = $1', [reelId]);
     
     const video = result.rows[0];
     
@@ -313,6 +434,9 @@ app.post('/api/reels/:id/like', async (req, res) => {
     if (reelCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Reel не найден' });
     }
+    
+    // Убедимся, что таблица лайков существует
+    await initializeTables();
     
     // Проверяем, не лайкал ли уже
     const existing = await pool.query(
@@ -372,7 +496,7 @@ app.post('/api/reels/create-test', async (req, res) => {
           ('11111111-1111-1111-1111-111111111111', '+79991234567', 'Иван', 'Иванов', 'Люблю путешествия и спорт', 'male', '👨'),
           ('22222222-2222-2222-2222-222222222222', '+79997654321', 'Анна', 'Петрова', 'Кофеман и дизайнер', 'female', '👩'),
           ('33333333-3333-3333-3333-333333333333', '+79995556677', 'Дмитрий', 'Сидоров', 'Фитнес тренер', 'male', '💪')
-        ON CONFLICT DO NOTHING
+        ON CONFLICT (phone) DO NOTHING
       `);
     }
     
@@ -440,6 +564,9 @@ app.get('/api/users', async (req, res) => {
   try {
     const { limit = 50 } = req.query;
     
+    // Убедимся, что таблица существует
+    await initializeTables();
+    
     const result = await pool.query(`
       SELECT id, name, surname, avatar_url, bio
       FROM users
@@ -482,6 +609,9 @@ app.post('/api/auth/register', async (req, res) => {
     if (!phone || !name) {
       return res.status(400).json({ error: 'Телефон и имя обязательны' });
     }
+    
+    // Убедимся, что таблица существует
+    await initializeTables();
     
     // Проверяем существование пользователя
     const existingUser = await pool.query(
@@ -542,7 +672,6 @@ function getDemoReels() {
       duration: 15,
       created_at: new Date().toISOString(),
       user_name: 'Иван Иванов',
-      user_surname: '',
       user_avatar: '👨',
       user_bio: 'Люблю путешествия и спорт',
       is_liked: false,
@@ -561,7 +690,6 @@ function getDemoReels() {
       duration: 12,
       created_at: new Date(Date.now() - 86400000).toISOString(),
       user_name: 'Анна Петрова',
-      user_surname: '',
       user_avatar: '👩',
       user_bio: 'Кофеман и дизайнер',
       is_liked: true,
@@ -580,7 +708,6 @@ function getDemoReels() {
       duration: 18,
       created_at: new Date(Date.now() - 172800000).toISOString(),
       user_name: 'Дмитрий Сидоров',
-      user_surname: '',
       user_avatar: '💪',
       user_bio: 'Фитнес тренер',
       is_liked: false,
@@ -592,32 +719,10 @@ function getDemoReels() {
   ];
 }
 
-// Создание таблиц
+// Создание таблиц - ИСПРАВЛЕННАЯ ВЕРСИЯ
 async function initializeTables() {
   try {
-    // Сначала проверяем, существует ли таблица со старой структурой
-    const tableExists = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'reels'
-      );
-    `);
-    
-    if (tableExists.rows[0].exists) {
-      // Проверяем структуру
-      const hasVideoBase64 = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'reels' AND column_name = 'video_base64'
-      `);
-      
-      if (hasVideoBase64.rows.length === 0) {
-        // Старая структура - пересоздаем таблицу
-        console.log('🔄 Обнаружена старая структура таблицы reels, пересоздаём...');
-        await pool.query('DROP TABLE IF EXISTS reel_likes CASCADE');
-        await pool.query('DROP TABLE IF EXISTS reels CASCADE');
-      }
-    }
+    console.log('🔄 Инициализация таблиц базы данных...');
     
     const tablesSQL = `
       -- Таблица пользователей
@@ -690,8 +795,15 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'API route not found' });
   }
   
+  // Игнорируем запросы к favicon и другим ресурсам
+  if (req.path.includes('.')) {
+    const filePath = path.join(__dirname, 'public', req.path);
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+  }
+  
   // Для всех остальных запросов пробуем найти HTML файл
-  const fs = require('fs');
   const possiblePaths = [
     path.join(__dirname, 'public', req.path + '.html'),
     path.join(__dirname, 'public', req.path, 'index.html'),
@@ -718,6 +830,9 @@ app.listen(PORT, () => {
   🌐 Главная: http://localhost:${PORT}/
   📹 Reels: http://localhost:${PORT}/reels-feed
   ⬆️ Загрузка: http://localhost:${PORT}/upload-video
+  📱 Vastapae: http://localhost:${PORT}/vastapae-feed
+  👥 Friends: http://localhost:${PORT}/friends-list
+  👨‍👩‍👧‍👦 Family: http://localhost:${PORT}/family-main
   
   🔧 API Endpoints:
   • http://localhost:${PORT}/api/health - Проверка сервера
