@@ -117,6 +117,9 @@ app.get('/api/health', async (req, res) => {
 // 2. Загрузка видео Reel (Base64)
 app.post('/api/reels/upload', async (req, res) => {
   try {
+    // Убеждаемся, что таблицы инициализированы
+    await initializeTables();
+    
     const { userId, videoBase64, filename, fileSize, mimeType, caption, music, duration } = req.body;
     
     if (!userId || !videoBase64) {
@@ -592,6 +595,30 @@ function getDemoReels() {
 // Создание таблиц
 async function initializeTables() {
   try {
+    // Сначала проверяем, существует ли таблица со старой структурой
+    const tableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'reels'
+      );
+    `);
+    
+    if (tableExists.rows[0].exists) {
+      // Проверяем структуру
+      const hasVideoBase64 = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'reels' AND column_name = 'video_base64'
+      `);
+      
+      if (hasVideoBase64.rows.length === 0) {
+        // Старая структура - пересоздаем таблицу
+        console.log('🔄 Обнаружена старая структура таблицы reels, пересоздаём...');
+        await pool.query('DROP TABLE IF EXISTS reel_likes CASCADE');
+        await pool.query('DROP TABLE IF EXISTS reels CASCADE');
+      }
+    }
+    
     const tablesSQL = `
       -- Таблица пользователей
       CREATE TABLE IF NOT EXISTS users (
@@ -639,38 +666,6 @@ async function initializeTables() {
     
     await pool.query(tablesSQL);
     console.log('✅ Таблицы созданы/проверены');
-    
-    // Миграция: добавляем колонку video_base64 если её нет
-    try {
-      const columnCheck = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'reels' AND column_name = 'video_base64'
-      `);
-      
-      if (columnCheck.rows.length === 0) {
-        // Если таблица существует без video_base64, добавляем колонку
-        await pool.query(`
-          ALTER TABLE reels 
-          ADD COLUMN IF NOT EXISTS video_base64 TEXT,
-          ADD COLUMN IF NOT EXISTS video_filename VARCHAR(255),
-          ADD COLUMN IF NOT EXISTS file_size INTEGER,
-          ADD COLUMN IF NOT EXISTS mime_type VARCHAR(50),
-          ADD COLUMN IF NOT EXISTS duration INTEGER
-        `);
-        
-        // Если есть старые данные с video_url, можно их мигрировать
-        // Но для новых записей video_base64 обязателен
-        await pool.query(`
-          ALTER TABLE reels 
-          ALTER COLUMN video_base64 SET NOT NULL
-        `);
-        
-        console.log('✅ Миграция таблицы reels выполнена');
-      }
-    } catch (migrationError) {
-      console.log('⚠️ Миграция не требуется или уже выполнена:', migrationError.message);
-    }
     
   } catch (error) {
     console.error('❌ Ошибка создания таблиц:', error.message);
