@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coolpep - Загрузить Reel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .back-button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 3px dashed rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .upload-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .video-preview {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: white;
+            background: rgba(255,255,255,0.15);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .upload-button {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        
+        .upload-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .upload-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: white;
+            transition: width 0.3s;
+        }
+        
+        .status-message {
+            text-align: center;
+            margin-top: 15px;
+            min-height: 20px;
+            font-size: 14px;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .file-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .camera-button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        
+        .camera-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="window.location.href='reels-feed.html'">←</button>
+        
+        <h1>📹 Создать Reel</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Перетащите видео сюда</div>
+            <div class="upload-subtext">или нажмите для выбора файла</div>
+            <div class="upload-subtext">MP4, MOV, AVI, до 100MB</div>
+        </div>
+        
+        <button class="camera-button" onclick="openCamera()">
+            <span>📷</span>
+            Снять видео на камеру
+        </button>
+        
+        <video class="video-preview" id="videoPreview" controls></video>
+        
+        <div class="file-info" id="fileInfo">
+            <strong>Выбранный файл:</strong> <span id="fileName"></span><br>
+            <small id="fileSize"></small>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <div class="form-group">
+            <label for="caption">Описание</label>
+            <textarea id="caption" placeholder="Добавьте описание к вашему видео... #хештеги"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="music">Музыка / Звук</label>
+            <select id="music">
+                <option value="">Без звука</option>
+                <option value="тренд • morning vibe">тренд • morning vibe</option>
+                <option value="тренд • workout motivation">тренд • workout motivation</option>
+                <option value="тренд • summer vibes">тренд • summer vibes</option>
+                <option value="Эпичная музыка - Adventure">Эпичная музыка - Adventure</option>
+                <option value="тренд • city lights">тренд • city lights</option>
+                <option value="тренд • dance workout">тренд • dance workout</option>
+                <option value="оригинальный звук">оригинальный звук</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="userId">ID пользователя</label>
+            <input type="text" id="userId" placeholder="Введите ваш ID пользователя" value="11111111-1111-1111-1111-111111111111">
+        </div>
+        
+        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="status-message" id="statusMessage"></div>
+        
+        <button class="upload-button" id="uploadButton" onclick="uploadVideo()" disabled>
+            📤 Загрузить Reel
+        </button>
+    </div>
+
+    <script>
+        // DOM элементы
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const videoPreview = document.getElementById('videoPreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadButton = document.getElementById('uploadButton');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusMessage = document.getElementById('statusMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const captionInput = document.getElementById('caption');
+        const musicInput = document.getElementById('music');
+        const userIdInput = document.getElementById('userId');
+        
+        let selectedFile = null;
+        
+        // Обработчики событий для области загрузки
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // Обработка выбранного файла
+        function handleFile(file) {
+            // Проверка типа файла
+            const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/x-matroska', 'video/webm'];
+            if (!allowedTypes.includes(file.type)) {
+                showError('Пожалуйста, выберите видео файл (MP4, MOV, AVI, WMV, FLV, MKV, WEBM)');
+                return;
+            }
+            
+            // Проверка размера (100MB максимум)
+            if (file.size > 100 * 1024 * 1024) {
+                showError('Файл слишком большой. Максимальный размер: 100MB');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Показываем информацию о файле
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+            
+            // Включаем кнопку загрузки
+            uploadButton.disabled = false;
+            
+            // Показываем превью видео
+            const videoURL = URL.createObjectURL(file);
+            videoPreview.src = videoURL;
+            videoPreview.style.display = 'block';
+            
+            hideError();
+        }
+        
+        // Загрузка видео на сервер
+        async function uploadVideo() {
+            if (!selectedFile) {
+                showError('Пожалуйста, выберите видео файл');
+                return;
+            }
+            
+            const userId = userIdInput.value.trim();
+            if (!userId) {
+                showError('Пожалуйста, введите ID пользователя');
+                return;
+            }
+            
+            const caption = captionInput.value.trim();
+            const music = musicInput.value;
+            
+            // Создаем FormData
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+            formData.append('userId', userId);
+            formData.append('caption', caption);
+            formData.append('music', music);
+            
+            // Показываем прогресс-бар
+            progressBar.style.display = 'block';
+            uploadButton.disabled = true;
+            statusMessage.textContent = 'Загрузка...';
+            
+            try {
+                // Создаем XMLHttpRequest для отслеживания прогресса
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        progressFill.style.width = percent + '%';
+                    }
+                });
+                
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            showSuccess('Reel успешно загружен!');
+                            statusMessage.textContent = 'Загрузка завершена!';
+                            
+                            // Перенаправляем на страницу с Reels через 2 секунды
+                            setTimeout(() => {
+                                window.location.href = 'reels-feed.html';
+                            }, 2000);
+                        } else {
+                            showError(response.error || 'Ошибка при загрузке');
+                        }
+                    } else {
+                        showError('Ошибка сервера: ' + xhr.status);
+                    }
+                    
+                    progressBar.style.display = 'none';
+                });
+                
+                xhr.addEventListener('error', () => {
+                    showError('Ошибка сети при загрузке файла');
+                    progressBar.style.display = 'none';
+                    uploadButton.disabled = false;
+                });
+                
+                xhr.open('POST', '/api/reels/upload');
+                xhr.send(formData);
+                
+            } catch (error) {
+                showError('Ошибка: ' + error.message);
+                progressBar.style.display = 'none';
+                uploadButton.disabled = false;
+            }
+        }
+        
+        // Открыть камеру
+        function openCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(stream => {
+                        alert('Камера доступна! Теперь вы можете записать видео');
+                        // Здесь можно добавить запись видео
+                        // Для простоты перенаправляем на ту же страницу
+                    })
+                    .catch(err => {
+                        showError('Ошибка доступа к камере: ' + err.message);
+                    });
+            } else {
+                showError('Ваш браузер не поддерживает доступ к камере');
+            }
+        }
+        
+        // Вспомогательные функции
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+        
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+        
+        // Загружаем несколько тестовых видео при первой загрузке страницы
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/reels/feed');
+                const data = await response.json();
+                
+                // Если нет Reels, предлагаем создать тестовые
+                if (data.reels.length === 0) {
+                    const createTest = confirm('На сервере пока нет Reels. Хотите создать тестовые данные?');
+                    if (createTest) {
+                        const testResponse = await fetch('/api/reels/create-test', { method: 'POST' });
+                        const testData = await testResponse.json();
+                        if (testData.success) {
+                            alert(`Создано ${testData.reels.length} тестовых видео!`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('Не удалось проверить наличие Reels:', error);
+            }
+        });
+    </script>
+</body>
+</html>
