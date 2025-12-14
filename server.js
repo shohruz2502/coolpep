@@ -2,8 +2,6 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
-const multer = require('multer');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
@@ -15,428 +13,314 @@ const PORT = process.env.PORT || 3000;
 
 // Подключение к PostgreSQL (Neon)
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_fake_password@ep-fake-host.neon.tech/neondb?sslmode=require',
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Увеличиваем лимит для Base64
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 
-// Создаем папку для загрузок если её нет
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'videos');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Настройка multer для загрузки видео
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}-${file.originalname}`;
-    cb(null, uniqueName);
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB максимум
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /mp4|mov|avi|wmv|flv|mkv|webm/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+// Проверка подключения к базе данных
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Ошибка подключения к базе данных:', err);
+  } else {
+    console.log('✅ Успешное подключение к базе данных Neon');
+    release();
     
-    if (extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Только видео файлы разрешены!'));
-    }
+    // Создаем таблицы при запуске
+    initializeTables();
   }
 });
 
-// Автоматически создаем таблицы при запуске
-async function initializeDatabase() {
+// Функция для создания таблиц
+async function initializeTables() {
   try {
-    await pool.query(`
+    const tablesSQL = `
       -- Таблица пользователей
       CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        phone VARCHAR(20) UNIQUE NOT NULL,
-        name VARCHAR(100) NOT NULL,
-        surname VARCHAR(100),
-        bio TEXT,
-        gender VARCHAR(20),
-        avatar_url TEXT,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          phone VARCHAR(20) UNIQUE NOT NULL,
+          name VARCHAR(100) NOT NULL,
+          surname VARCHAR(100),
+          bio TEXT,
+          gender VARCHAR(20),
+          avatar_url TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
       );
       
-      -- Таблица друзей
-      CREATE TABLE IF NOT EXISTS friends (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL,
-        friend_id UUID NOT NULL,
-        status VARCHAR(20) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(user_id, friend_id)
-      );
-      
-      -- Таблица сообществ
-      CREATE TABLE IF NOT EXISTS communities (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(200) NOT NULL,
-        type VARCHAR(50) NOT NULL,
-        description TEXT,
-        is_private BOOLEAN DEFAULT false,
-        created_by UUID,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-      
-      -- Таблица участников сообществ
-      CREATE TABLE IF NOT EXISTS community_members (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        community_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        role VARCHAR(20) DEFAULT 'member',
-        is_muted BOOLEAN DEFAULT false,
-        mute_reason TEXT,
-        muted_by UUID,
-        joined_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(community_id, user_id)
-      );
-      
-      -- Таблица сообщений сообществ
-      CREATE TABLE IF NOT EXISTS community_messages (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        community_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-      
-      -- Таблица личных сообщений
-      CREATE TABLE IF NOT EXISTS private_messages (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        sender_id UUID NOT NULL,
-        receiver_id UUID NOT NULL,
-        content TEXT NOT NULL,
-        is_anonymous BOOLEAN DEFAULT false,
-        anonymous_avatar TEXT,
-        anonymous_name VARCHAR(100),
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-      
-      -- Таблица Reels
+      -- Таблица Reels с Base64 видео
       CREATE TABLE IF NOT EXISTS reels (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL,
-        video_url VARCHAR(500) NOT NULL,
-        video_filename VARCHAR(255) NOT NULL,
-        thumbnail_url VARCHAR(500),
-        caption TEXT,
-        music VARCHAR(255),
-        likes_count INTEGER DEFAULT 0,
-        views_count INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT NOW()
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          video_base64 TEXT NOT NULL,
+          video_filename VARCHAR(255) NOT NULL,
+          file_size INTEGER NOT NULL,
+          mime_type VARCHAR(50) NOT NULL,
+          thumbnail_url VARCHAR(500),
+          caption TEXT,
+          music VARCHAR(255),
+          likes_count INTEGER DEFAULT 0,
+          views_count INTEGER DEFAULT 0,
+          duration INTEGER,
+          created_at TIMESTAMP DEFAULT NOW()
       );
       
       -- Таблица лайков Reels
       CREATE TABLE IF NOT EXISTS reel_likes (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        reel_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(reel_id, user_id)
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          reel_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(reel_id, user_id)
+      );
+      
+      -- Таблица друзей
+      CREATE TABLE IF NOT EXISTS friends (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          friend_id UUID NOT NULL,
+          status VARCHAR(20) DEFAULT 'pending',
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(user_id, friend_id)
+      );
+      
+      -- Таблица сообществ
+      CREATE TABLE IF NOT EXISTS communities (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(200) NOT NULL,
+          type VARCHAR(50) NOT NULL,
+          description TEXT,
+          is_private BOOLEAN DEFAULT false,
+          created_by UUID,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      -- Таблица участников сообществ
+      CREATE TABLE IF NOT EXISTS community_members (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          community_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          role VARCHAR(20) DEFAULT 'member',
+          is_muted BOOLEAN DEFAULT false,
+          mute_reason TEXT,
+          muted_by UUID,
+          joined_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(community_id, user_id)
+      );
+      
+      -- Таблица сообщений сообществ
+      CREATE TABLE IF NOT EXISTS community_messages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          community_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      -- Таблица личных сообщений
+      CREATE TABLE IF NOT EXISTS private_messages (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          sender_id UUID NOT NULL,
+          receiver_id UUID NOT NULL,
+          content TEXT NOT NULL,
+          is_anonymous BOOLEAN DEFAULT false,
+          anonymous_avatar TEXT,
+          anonymous_name VARCHAR(100),
+          created_at TIMESTAMP DEFAULT NOW()
       );
       
       -- Таблица постов ленты
       CREATE TABLE IF NOT EXISTS posts (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL,
-        content TEXT NOT NULL,
-        community_id UUID,
-        created_at TIMESTAMP DEFAULT NOW()
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          content TEXT NOT NULL,
+          community_id UUID,
+          created_at TIMESTAMP DEFAULT NOW()
       );
       
       -- Таблица LOVE чатов
       CREATE TABLE IF NOT EXISTS love_chats (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user1_id UUID NOT NULL,
-        user2_id UUID NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user1_id UUID NOT NULL,
+          user2_id UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
       );
       
       -- Таблица сообщений LOVE чатов
       CREATE TABLE IF NOT EXISTS love_messages (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        love_chat_id UUID NOT NULL,
-        sender_id UUID NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          love_chat_id UUID NOT NULL,
+          sender_id UUID NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
       );
-    `);
+    `;
     
-    console.log('✅ Таблицы базы данных созданы/проверены');
+    await pool.query(tablesSQL);
+    console.log('✅ Таблицы созданы/проверены');
     
-    // Создаем тестового пользователя если нет пользователей
+    // Создаем тестовые данные если их нет
+    await createTestData();
+    
+  } catch (error) {
+    console.error('❌ Ошибка создания таблиц:', error);
+  }
+}
+
+// Создание тестовых данных
+async function createTestData() {
+  try {
+    // Проверяем наличие пользователей
     const usersCount = await pool.query('SELECT COUNT(*) FROM users');
     if (parseInt(usersCount.rows[0].count) === 0) {
       await pool.query(`
-        INSERT INTO users (id, phone, name, surname, bio, gender, avatar_url) 
+        INSERT INTO users (id, phone, name, surname, bio, gender) 
         VALUES 
-          ('11111111-1111-1111-1111-111111111111', '+79991234567', 'Иван', 'Иванов', 'Люблю путешествия и спорт', 'male', ''),
-          ('22222222-2222-2222-2222-222222222222', '+79997654321', 'Анна', 'Петрова', 'Кофеман и дизайнер', 'female', ''),
-          ('33333333-3333-3333-3333-333333333333', '+79995556677', 'Дмитрий', 'Сидоров', 'Фитнес тренер', 'male', ''),
-          ('44444444-4444-4444-4444-444444444444', '+79998889900', 'Мария', 'Козлова', 'Художник и иллюстратор', 'female', '')
-        ON CONFLICT (phone) DO NOTHING
+          ('11111111-1111-1111-1111-111111111111', '+79991234567', 'Иван', 'Иванов', 'Люблю путешествия и спорт', 'male'),
+          ('22222222-2222-2222-2222-222222222222', '+79997654321', 'Анна', 'Петрова', 'Кофеман и дизайнер', 'female'),
+          ('33333333-3333-3333-3333-333333333333', '+79995556677', 'Дмитрий', 'Сидоров', 'Фитнес тренер', 'male'),
+          ('44444444-4444-4444-4444-444444444444', '+79998889900', 'Мария', 'Козлова', 'Художник и иллюстратор', 'female')
       `);
       console.log('✅ Тестовые пользователи созданы');
     }
     
-    // Создаем тестовые Reels если их нет
+    // Проверяем наличие Reels
     const reelsCount = await pool.query('SELECT COUNT(*) FROM reels');
     if (parseInt(reelsCount.rows[0].count) === 0) {
-      // Создаем тестовые демо-видео (используем ссылки на бесплатные видео)
-      const testVideos = [
+      // Создаем несколько демо Reels с короткими Base64 видео (пустыми для демо)
+      const demoVideos = [
         {
           user_id: '11111111-1111-1111-1111-111111111111',
-          video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          video_filename: 'big-buck-bunny.mp4',
+          video_base64: 'data:video/mp4;base64,dummy-video-base64-1',
+          video_filename: 'mountain-scenery.mp4',
+          file_size: 5242880, // 5MB
+          mime_type: 'video/mp4',
           caption: 'Удивительные горные пейзажи Норвегии #путешествия #норвегия',
           music: 'Эпичная музыка - Adventure',
           likes_count: 12500,
-          views_count: 89000
+          views_count: 89000,
+          duration: 15
         },
         {
           user_id: '22222222-2222-2222-2222-222222222222',
-          video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-          video_filename: 'elephants-dream.mp4',
+          video_base64: 'data:video/mp4;base64,dummy-video-base64-2',
+          video_filename: 'coffee-making.mp4',
+          file_size: 3145728, // 3MB
+          mime_type: 'video/mp4',
           caption: 'Приготовление идеального кофе дома ☕ #кофе #рецепт',
           music: 'тренд • morning vibe',
           likes_count: 8700,
-          views_count: 45000
+          views_count: 45000,
+          duration: 12
         },
         {
           user_id: '33333333-3333-3333-3333-333333333333',
-          video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          video_filename: 'workout-video.mp4',
+          video_base64: 'data:video/mp4;base64,dummy-video-base64-3',
+          video_filename: 'outdoor-workout.mp4',
+          file_size: 7340032, // 7MB
+          mime_type: 'video/mp4',
           caption: 'Тренировка на свежем воздухе 💪 #спорт #здоровье',
           music: 'тренд • workout motivation',
           likes_count: 15600,
-          views_count: 120000
-        },
-        {
-          user_id: '44444444-4444-4444-4444-444444444444',
-          video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-          video_filename: 'digital-art.mp4',
-          caption: 'Процесс создания цифрового арта ✨ #дизайн #арт',
-          music: 'оригинальный звук',
-          likes_count: 23100,
-          views_count: 210000
+          views_count: 120000,
+          duration: 18
         }
       ];
       
-      for (const video of testVideos) {
-        await pool.query(
-          `INSERT INTO reels (user_id, video_url, video_filename, caption, music, likes_count, views_count, created_at) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${Math.floor(Math.random() * 30)} days')`,
-          [video.user_id, video.video_url, video.video_filename, video.caption, video.music, video.likes_count, video.views_count]
-        );
+      for (const video of demoVideos) {
+        await pool.query(`
+          INSERT INTO reels (user_id, video_base64, video_filename, file_size, mime_type, caption, music, likes_count, views_count, duration, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '${Math.floor(Math.random() * 30)} days')
+        `, [
+          video.user_id, video.video_base64, video.video_filename, video.file_size, 
+          video.mime_type, video.caption, video.music, video.likes_count, 
+          video.views_count, video.duration
+        ]);
       }
       
       console.log('✅ Тестовые Reels созданы');
     }
-    
   } catch (error) {
-    console.error('❌ Ошибка инициализации базы данных:', error.message);
+    console.error('❌ Ошибка создания тестовых данных:', error);
   }
 }
 
-// Инициализируем базу данных
-initializeDatabase();
-
 // ============= API МАРШРУТЫ =============
 
-// 1. Аутентификация
-app.post('/api/auth/register', async (req, res) => {
+// 1. Загрузка видео Reel (Base64)
+app.post('/api/reels/upload', async (req, res) => {
   try {
-    const { phone, name } = req.body;
-
-    if (!phone || !name) {
-      return res.status(400).json({ error: 'Телефон и имя обязательны' });
-    }
-
-    // Проверяем существование пользователя
-    const existingUser = await pool.query(
-      'SELECT id FROM users WHERE phone = $1',
-      [phone]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'Пользователь уже существует' });
-    }
-
-    // Создаем пользователя
-    const result = await pool.query(
-      'INSERT INTO users (phone, name) VALUES ($1, $2) RETURNING id, phone, name',
-      [phone, name]
-    );
-
-    res.json({
-      success: true,
-      userId: result.rows[0].id,
-      verificationCode: '1234',
-      message: 'Код подтверждения отправлен'
-    });
-
-  } catch (error) {
-    console.error('Ошибка регистрации:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 2. Подтверждение кода
-app.post('/api/auth/verify', async (req, res) => {
-  try {
-    const { userId, code, userData } = req.body;
-
-    if (code !== '1234') {
-      return res.status(400).json({ error: 'Неверный код' });
-    }
-
-    // Обновляем данные пользователя
-    if (userData) {
-      const updates = [];
-      const values = [];
-      let index = 1;
-
-      if (userData.surname) {
-        updates.push(`surname = $${index++}`);
-        values.push(userData.surname);
-      }
-      if (userData.bio) {
-        updates.push(`bio = $${index++}`);
-        values.push(userData.bio);
-      }
-      if (userData.gender) {
-        updates.push(`gender = $${index++}`);
-        values.push(userData.gender);
-      }
-
-      if (updates.length > 0) {
-        values.push(userId);
-        await pool.query(
-          `UPDATE users SET ${updates.join(', ')} WHERE id = $${index}`,
-          values
-        );
-      }
-    }
-
-    // Получаем обновленные данные
-    const userResult = await pool.query(
-      'SELECT id, phone, name, surname, bio, gender FROM users WHERE id = $1',
-      [userId]
-    );
-
-    res.json({
-      success: true,
-      user: userResult.rows[0]
-    });
-
-  } catch (error) {
-    console.error('Ошибка подтверждения:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 3. Получить профиль пользователя
-app.get('/api/user/:id', async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    const result = await pool.query(
-      'SELECT id, phone, name, surname, bio, gender, avatar_url FROM users WHERE id = $1',
-      [userId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Пользователь не найден' });
-    }
-
-    res.json({ success: true, user: result.rows[0] });
-
-  } catch (error) {
-    console.error('Ошибка получения профиля:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 4. Загрузка Reel
-app.post('/api/reels/upload', upload.single('video'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Видео файл обязателен' });
-    }
-
-    const { userId, caption, music } = req.body;
+    const { userId, videoBase64, filename, fileSize, mimeType, caption, music, duration } = req.body;
     
-    if (!userId) {
-      return res.status(400).json({ error: 'ID пользователя обязателен' });
+    if (!userId || !videoBase64) {
+      return res.status(400).json({ error: 'ID пользователя и видео обязательны' });
     }
-
-    // Создаем публичный URL для видео
-    const videoUrl = `/uploads/videos/${req.file.filename}`;
+    
+    // Проверка размера файла (максимум 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (fileSize > maxSize) {
+      return res.status(400).json({ error: 'Размер файла не должен превышать 10MB' });
+    }
+    
+    // Проверка формата Base64
+    if (!videoBase64.startsWith('data:video/')) {
+      return res.status(400).json({ error: 'Неверный формат видео' });
+    }
     
     // Сохраняем в базу данных
-    const result = await pool.query(
-      `INSERT INTO reels (user_id, video_url, video_filename, caption, music) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [userId, videoUrl, req.file.filename, caption || '', music || '']
-    );
-
+    const result = await pool.query(`
+      INSERT INTO reels (user_id, video_base64, video_filename, file_size, mime_type, caption, music, duration)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, user_id, caption, music, likes_count, views_count, created_at
+    `, [userId, videoBase64, filename || 'video.mp4', fileSize || 0, mimeType || 'video/mp4', 
+        caption || '', music || '', duration || 15]);
+    
     res.json({
       success: true,
       reel: result.rows[0],
       message: 'Reel успешно загружен'
     });
-
+    
   } catch (error) {
     console.error('Ошибка загрузки видео:', error);
     res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
   }
 });
 
-// 5. Получить ленту Reels
+// 2. Получить ленту Reels
 app.get('/api/reels/feed', async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 10, userId } = req.query;
     const offset = (page - 1) * limit;
-
+    
+    // Получаем Reels с информацией о пользователе
     const result = await pool.query(`
-      SELECT r.*, 
-             u.name as user_name,
-             u.avatar_url as user_avatar,
-             (SELECT COUNT(*) FROM reel_likes WHERE reel_id = r.id) as likes_count,
-             COALESCE((SELECT EXISTS(SELECT 1 FROM reel_likes WHERE reel_id = r.id AND user_id = $1)), false) as is_liked
+      SELECT r.id, r.user_id, r.video_filename, r.file_size, r.mime_type, r.caption, r.music, 
+             r.likes_count, r.views_count, r.duration, r.created_at,
+             u.name as user_name, u.avatar_url as user_avatar,
+             CASE WHEN rl.user_id IS NOT NULL THEN true ELSE false END as is_liked
       FROM reels r
       LEFT JOIN users u ON r.user_id = u.id
+      LEFT JOIN reel_likes rl ON r.id = rl.reel_id AND rl.user_id = $1
       ORDER BY r.created_at DESC
       LIMIT $2 OFFSET $3
-    `, [req.query.userId || '00000000-0000-0000-0000-000000000000', parseInt(limit), parseInt(offset)]);
-
+    `, [userId || null, parseInt(limit), parseInt(offset)]);
+    
     // Увеличиваем счетчик просмотров
     if (result.rows.length > 0) {
-      const reelIds = result.rows.map(r => r.id);
       await pool.query(`
         UPDATE reels 
         SET views_count = views_count + 1 
         WHERE id = ANY($1::uuid[])
-      `, [reelIds]);
+      `, [result.rows.map(r => r.id)]);
     }
-
+    
     // Получаем общее количество
     const totalResult = await pool.query('SELECT COUNT(*) FROM reels');
     
@@ -449,405 +333,281 @@ app.get('/api/reels/feed', async (req, res) => {
         total: parseInt(totalResult.rows[0].count)
       }
     });
-
+    
   } catch (error) {
     console.error('Ошибка получения Reels:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// 6. Лайк/дизлайк Reel
-app.post('/api/reels/:id/like', async (req, res) => {
+// 3. Получить конкретное видео (Base64)
+app.get('/api/reels/:id/video', async (req, res) => {
   try {
     const reelId = req.params.id;
-    const { userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'ID пользователя обязателен' });
-    }
-
-    // Проверяем, не лайкал ли уже
-    const existing = await pool.query(
-      'SELECT id FROM reel_likes WHERE reel_id = $1 AND user_id = $2',
-      [reelId, userId]
-    );
-
-    if (existing.rows.length > 0) {
-      // Удаляем лайк
-      await pool.query('DELETE FROM reel_likes WHERE reel_id = $1 AND user_id = $2', [reelId, userId]);
-    } else {
-      // Добавляем лайк
-      await pool.query('INSERT INTO reel_likes (reel_id, user_id) VALUES ($1, $2)', [reelId, userId]);
-    }
-
-    // Получаем обновленное количество лайков
-    const likesResult = await pool.query(
-      'SELECT COUNT(*) as likes_count FROM reel_likes WHERE reel_id = $1',
-      [reelId]
-    );
-
-    res.json({ 
-      success: true,
-      likes_count: parseInt(likesResult.rows[0].likes_count),
-      is_liked: existing.rows.length === 0
-    });
-
-  } catch (error) {
-    console.error('Ошибка лайка:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 7. Создать тестовые Reels (если нужны)
-app.post('/api/reels/create-test', async (req, res) => {
-  try {
-    const testVideos = [
-      {
-        user_id: '11111111-1111-1111-1111-111111111111',
-        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        video_filename: 'big-buck-bunny.mp4',
-        caption: 'Удивительные горные пейзажи Норвегии #путешествия #норвегия',
-        music: 'Эпичная музыка - Adventure',
-        likes_count: 12500,
-        views_count: 89000
-      },
-      {
-        user_id: '22222222-2222-2222-2222-222222222222',
-        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-        video_filename: 'elephants-dream.mp4',
-        caption: 'Приготовление идеального кофе дома ☕ #кофе #рецепт',
-        music: 'тренд • morning vibe',
-        likes_count: 8700,
-        views_count: 45000
-      },
-      {
-        user_id: '33333333-3333-3333-3333-333333333333',
-        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        video_filename: 'workout-video.mp4',
-        caption: 'Тренировка на свежем воздухе 💪 #спорт #здоровье',
-        music: 'тренд • workout motivation',
-        likes_count: 15600,
-        views_count: 120000
-      },
-      {
-        user_id: '44444444-4444-4444-4444-444444444444',
-        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        video_filename: 'digital-art.mp4',
-        caption: 'Процесс создания цифрового арта ✨ #дизайн #арт',
-        music: 'оригинальный звук',
-        likes_count: 23100,
-        views_count: 210000
-      }
-    ];
-
-    const inserted = [];
     
-    for (const video of testVideos) {
-      const result = await pool.query(
-        `INSERT INTO reels (user_id, video_url, video_filename, caption, music, likes_count, views_count, created_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${Math.floor(Math.random() * 30)} days') RETURNING id`,
-        [video.user_id, video.video_url, video.video_filename, video.caption, video.music, video.likes_count, video.views_count]
-      );
-      inserted.push(result.rows[0]);
-    }
-
-    res.json({ 
-      success: true, 
-      message: `Добавлено ${inserted.length} тестовых видео`,
-      reels: inserted 
-    });
-
-  } catch (error) {
-    console.error('Ошибка создания тестовых данных:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 8. Получить Reel по ID
-app.get('/api/reels/:id', async (req, res) => {
-  try {
-    const reelId = req.params.id;
-
     const result = await pool.query(`
-      SELECT r.*, 
-             u.name as user_name,
-             u.avatar_url as user_avatar,
-             (SELECT COUNT(*) FROM reel_likes WHERE reel_id = r.id) as likes_count
-      FROM reels r
-      LEFT JOIN users u ON r.user_id = u.id
-      WHERE r.id = $1
+      SELECT video_base64, mime_type, video_filename 
+      FROM reels 
+      WHERE id = $1
     `, [reelId]);
-
+    
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Reel не найден' });
     }
-
+    
     // Увеличиваем счетчик просмотров
     await pool.query('UPDATE reels SET views_count = views_count + 1 WHERE id = $1', [reelId]);
+    
+    const video = result.rows[0];
+    
+    // Отправляем видео как Base64
+    res.json({
+      success: true,
+      video: video.video_base64,
+      mimeType: video.mime_type,
+      filename: video.video_filename
+    });
+    
+  } catch (error) {
+    console.error('Ошибка получения видео:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
 
+// 4. Получить информацию о Reel
+app.get('/api/reels/:id', async (req, res) => {
+  try {
+    const reelId = req.params.id;
+    const { userId } = req.query;
+    
+    const result = await pool.query(`
+      SELECT r.*, 
+             u.name as user_name, u.avatar_url as user_avatar,
+             CASE WHEN rl.user_id IS NOT NULL THEN true ELSE false END as is_liked
+      FROM reels r
+      LEFT JOIN users u ON r.user_id = u.id
+      LEFT JOIN reel_likes rl ON r.id = rl.reel_id AND rl.user_id = $2
+      WHERE r.id = $1
+    `, [reelId, userId || null]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Reel не найден' });
+    }
+    
+    // Увеличиваем счетчик просмотров
+    await pool.query('UPDATE reels SET views_count = views_count + 1 WHERE id = $1', [reelId]);
+    
     res.json({ success: true, reel: result.rows[0] });
-
+    
   } catch (error) {
     console.error('Ошибка получения Reel:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// 9. Друзья - поиск
-app.get('/api/friends/search', async (req, res) => {
+// 5. Лайк/дизлайк Reel
+app.post('/api/reels/:id/like', async (req, res) => {
   try {
-    const { query } = req.query;
-
-    const result = await pool.query(
-      `SELECT id, name, surname, avatar_url, bio 
-       FROM users 
-       WHERE name ILIKE $1 OR surname ILIKE $1
-       LIMIT 20`,
-      [`%${query}%`]
-    );
-
-    res.json({ success: true, users: result.rows });
-
-  } catch (error) {
-    console.error('Ошибка поиска друзей:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 10. Друзья - отправить запрос
-app.post('/api/friends/request', async (req, res) => {
-  try {
-    const { userId, friendId } = req.body;
-
-    await pool.query(
-      'INSERT INTO friends (user_id, friend_id, status) VALUES ($1, $2, $3)',
-      [userId, friendId, 'pending']
-    );
-
-    res.json({ success: true, message: 'Запрос отправлен' });
-
-  } catch (error) {
-    console.error('Ошибка отправки запроса:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 11. Сообщества - создать
-app.post('/api/communities', async (req, res) => {
-  try {
-    const { name, type, description, isPrivate, createdBy } = req.body;
-
-    const result = await pool.query(
-      `INSERT INTO communities (name, type, description, is_private, created_by)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [name, type, description, isPrivate || false, createdBy]
-    );
-
-    const community = result.rows[0];
-
-    // Создатель становится админом
-    await pool.query(
-      'INSERT INTO community_members (community_id, user_id, role) VALUES ($1, $2, $3)',
-      [community.id, createdBy, 'admin']
-    );
-
-    res.json({ success: true, community });
-
-  } catch (error) {
-    console.error('Ошибка создания сообщества:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 12. Сообщества - поиск
-app.get('/api/communities/search', async (req, res) => {
-  try {
-    const { query, type } = req.query;
-
-    let sql = `
-      SELECT c.*, COUNT(cm.user_id) as members_count
-      FROM communities c
-      LEFT JOIN community_members cm ON c.id = cm.community_id
-      WHERE 1=1
-    `;
-
-    const params = [];
-    let paramCount = 1;
-
-    if (query) {
-      sql += ` AND (c.name ILIKE $${paramCount} OR c.description ILIKE $${paramCount})`;
-      params.push(`%${query}%`);
-      paramCount++;
+    const reelId = req.params.id;
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'ID пользователя обязателен' });
     }
-
-    if (type && type !== 'all') {
-      sql += ` AND c.type = $${paramCount}`;
-      params.push(type);
-      paramCount++;
+    
+    // Проверяем, не лайкал ли уже
+    const existing = await pool.query(
+      'SELECT id FROM reel_likes WHERE reel_id = $1 AND user_id = $2',
+      [reelId, userId]
+    );
+    
+    if (existing.rows.length > 0) {
+      // Удаляем лайк
+      await pool.query('DELETE FROM reel_likes WHERE reel_id = $1 AND user_id = $2', [reelId, userId]);
+      await pool.query('UPDATE reels SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = $1', [reelId]);
+    } else {
+      // Добавляем лайк
+      await pool.query('INSERT INTO reel_likes (reel_id, user_id) VALUES ($1, $2)', [reelId, userId]);
+      await pool.query('UPDATE reels SET likes_count = likes_count + 1 WHERE id = $1', [reelId]);
     }
-
-    sql += ` GROUP BY c.id ORDER BY members_count DESC LIMIT 20`;
-
-    const result = await pool.query(sql, params);
-    res.json({ success: true, communities: result.rows });
-
-  } catch (error) {
-    console.error('Ошибка поиска сообществ:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 13. VASTAPAE - лента
-app.get('/api/feed/vastapae', async (req, res) => {
-  try {
-    const posts = await pool.query(`
-      SELECT p.*, u.name, u.surname, u.avatar_url, c.name as community_name
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      LEFT JOIN communities c ON p.community_id = c.id
-      ORDER BY p.created_at DESC
-      LIMIT 20
-    `);
-
-    res.json({ success: true, posts: posts.rows });
-
-  } catch (error) {
-    console.error('Ошибка получения ленты:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 14. VASTAPAE - создать пост
-app.post('/api/feed/posts', async (req, res) => {
-  try {
-    const { userId, content, communityId } = req.body;
-
-    const result = await pool.query(
-      'INSERT INTO posts (user_id, content, community_id) VALUES ($1, $2, $3) RETURNING *',
-      [userId, content, communityId]
+    
+    // Получаем обновленное количество лайков
+    const likesResult = await pool.query(
+      'SELECT likes_count FROM reels WHERE id = $1',
+      [reelId]
     );
-
-    res.json({ success: true, post: result.rows[0] });
-
+    
+    res.json({ 
+      success: true,
+      likes_count: likesResult.rows[0]?.likes_count || 0,
+      is_liked: existing.rows.length === 0
+    });
+    
   } catch (error) {
-    console.error('Ошибка создания поста:', error);
+    console.error('Ошибка лайка:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// 15. Сообщения сообщества
-app.get('/api/communities/:id/messages', async (req, res) => {
+// 6. Аутентификация
+app.post('/api/auth/register', async (req, res) => {
   try {
-    const communityId = req.params.id;
-
-    const messages = await pool.query(`
-      SELECT cm.*, u.name, u.surname, u.avatar_url
-      FROM community_messages cm
-      JOIN users u ON cm.user_id = u.id
-      WHERE cm.community_id = $1
-      ORDER BY cm.created_at ASC
-      LIMIT 50
-    `, [communityId]);
-
-    res.json({ success: true, messages: messages.rows });
-
-  } catch (error) {
-    console.error('Ошибка получения сообщений:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 16. Отправить сообщение в сообщество
-app.post('/api/communities/:id/messages', async (req, res) => {
-  try {
-    const communityId = req.params.id;
-    const { userId, content } = req.body;
-
-    const result = await pool.query(
-      'INSERT INTO community_messages (community_id, user_id, content) VALUES ($1, $2, $3) RETURNING *',
-      [communityId, userId, content]
+    const { phone, name } = req.body;
+    
+    if (!phone || !name) {
+      return res.status(400).json({ error: 'Телефон и имя обязательны' });
+    }
+    
+    // Проверяем существование пользователя
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE phone = $1',
+      [phone]
     );
-
-    res.json({ success: true, message: result.rows[0] });
-
-  } catch (error) {
-    console.error('Ошибка отправки сообщения:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 17. Личные сообщения - отправить
-app.post('/api/messages/send', async (req, res) => {
-  try {
-    const { senderId, receiverId, content, isAnonymous, anonymousAvatar, anonymousName } = req.body;
-
+    
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Пользователь уже существует' });
+    }
+    
+    // Создаем пользователя
     const result = await pool.query(
-      `INSERT INTO private_messages 
-       (sender_id, receiver_id, content, is_anonymous, anonymous_avatar, anonymous_name)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [senderId, receiverId, content, isAnonymous || false, anonymousAvatar, anonymousName]
+      'INSERT INTO users (phone, name) VALUES ($1, $2) RETURNING id, phone, name',
+      [phone, name]
     );
-
-    res.json({ success: true, message: result.rows[0] });
-
-  } catch (error) {
-    console.error('Ошибка отправки сообщения:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 18. LOVE чаты - создать
-app.post('/api/love/create', async (req, res) => {
-  try {
-    const { user1Id, user2Id } = req.body;
-
-    const result = await pool.query(
-      'INSERT INTO love_chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
-      [user1Id, user2Id]
-    );
-
-    res.json({ success: true, chat: result.rows[0] });
-
-  } catch (error) {
-    console.error('Ошибка создания LOVE чата:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// 19. Маршрут для проверки здоровья
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    database: 'Connected',
-    reels_count: 4,
-    users_count: 4
-  });
-});
-
-// 20. Получить все данные для отладки
-app.get('/api/debug', async (req, res) => {
-  try {
-    const users = await pool.query('SELECT id, name, phone FROM users LIMIT 10');
-    const reels = await pool.query('SELECT id, user_id, caption, video_url FROM reels LIMIT 10');
-    const likes = await pool.query('SELECT reel_id, COUNT(*) as likes FROM reel_likes GROUP BY reel_id LIMIT 10');
     
     res.json({
       success: true,
-      users: users.rows,
-      reels: reels.rows,
-      likes: likes.rows,
-      uploads_dir: uploadsDir,
-      files: fs.readdirSync(uploadsDir)
+      userId: result.rows[0].id,
+      verificationCode: '1234',
+      message: 'Код подтверждения отправлен'
     });
+    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Ошибка регистрации:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// ============= СТАТИЧЕСКИЕ ФАЙЛЫ И РОУТИНГ =============
+// 7. Создать тестовые Reels
+app.post('/api/reels/create-test', async (req, res) => {
+  try {
+    const testVideos = [
+      {
+        user_id: '11111111-1111-1111-1111-111111111111',
+        video_base64: 'data:video/mp4;base64,demo-base64-1',
+        video_filename: 'demo-mountain.mp4',
+        file_size: 5242880,
+        mime_type: 'video/mp4',
+        caption: 'Удивительные горные пейзажи Норвегии #путешествия #норвегия',
+        music: 'Эпичная музыка - Adventure',
+        likes_count: 12500,
+        views_count: 89000,
+        duration: 15
+      },
+      {
+        user_id: '22222222-2222-2222-2222-222222222222',
+        video_base64: 'data:video/mp4;base64,demo-base64-2',
+        video_filename: 'demo-coffee.mp4',
+        file_size: 3145728,
+        mime_type: 'video/mp4',
+        caption: 'Приготовление идеального кофе дома ☕ #кофе #рецепт',
+        music: 'тренд • morning vibe',
+        likes_count: 8700,
+        views_count: 45000,
+        duration: 12
+      }
+    ];
+    
+    const inserted = [];
+    
+    for (const video of testVideos) {
+      const result = await pool.query(`
+        INSERT INTO reels (user_id, video_base64, video_filename, file_size, mime_type, caption, music, likes_count, views_count, duration)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id
+      `, [
+        video.user_id, video.video_base64, video.video_filename, video.file_size,
+        video.mime_type, video.caption, video.music, video.likes_count,
+        video.views_count, video.duration
+      ]);
+      inserted.push(result.rows[0]);
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Добавлено ${inserted.length} тестовых видео`,
+      reels: inserted 
+    });
+    
+  } catch (error) {
+    console.error('Ошибка создания тестовых данных:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
 
-// Специальные маршруты для HTML страниц
+// 8. Проверка здоровья
+app.get('/api/health', async (req, res) => {
+  try {
+    const usersCount = await pool.query('SELECT COUNT(*) FROM users');
+    const reelsCount = await pool.query('SELECT COUNT(*) FROM reels');
+    
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      database: 'Connected',
+      users_count: parseInt(usersCount.rows[0].count),
+      reels_count: parseInt(reelsCount.rows[0].count)
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+
+// 9. Получить статистику
+app.get('/api/stats', async (req, res) => {
+  try {
+    const totalReels = await pool.query('SELECT COUNT(*) FROM reels');
+    const totalLikes = await pool.query('SELECT SUM(likes_count) FROM reels');
+    const totalViews = await pool.query('SELECT SUM(views_count) FROM reels');
+    const recentReels = await pool.query('SELECT COUNT(*) FROM reels WHERE created_at > NOW() - INTERVAL \'7 days\'');
+    
+    res.json({
+      success: true,
+      stats: {
+        total_reels: parseInt(totalReels.rows[0].count),
+        total_likes: parseInt(totalLikes.rows[0].sum || 0),
+        total_views: parseInt(totalViews.rows[0].sum || 0),
+        recent_reels: parseInt(recentReels.rows[0].count)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка получения статистики' });
+  }
+});
+
+// 10. Поиск Reels
+app.get('/api/reels/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    const result = await pool.query(`
+      SELECT r.id, r.user_id, r.caption, r.music, r.likes_count, r.views_count, r.created_at,
+             u.name as user_name, u.avatar_url as user_avatar
+      FROM reels r
+      LEFT JOIN users u ON r.user_id = u.id
+      WHERE r.caption ILIKE $1 OR u.name ILIKE $1
+      ORDER BY r.created_at DESC
+      LIMIT 20
+    `, [`%${query}%`]);
+    
+    res.json({ success: true, reels: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка поиска' });
+  }
+});
+
+// ============= СТАТИЧЕСКИЕ ФАЙЛЫ =============
+
+// Роуты для HTML страниц
 app.get('/reels-feed', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reels-feed.html'));
 });
@@ -856,56 +616,8 @@ app.get('/upload-video', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'upload-video.html'));
 });
 
-app.get('/vastapae-feed', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'vastapae-feed.html'));
-});
-
-app.get('/main-hub', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'main-hub.html'));
-});
-
-// Все остальные запросы → проверяем существование файла или отдаем launch.html
-app.get('*', (req, res) => {
-  // Если запрос начинается с /api/, возвращаем 404
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API route not found: ' + req.path });
-  }
-  
-  // Если запрос на загруженное видео
-  if (req.path.startsWith('/uploads/')) {
-    const filePath = path.join(__dirname, 'public', req.path);
-    if (fs.existsSync(filePath)) {
-      return res.sendFile(filePath);
-    } else {
-      return res.status(404).json({ error: 'File not found' });
-    }
-  }
-  
-  // Проверяем, существует ли запрашиваемый файл
-  const filePath = path.join(__dirname, 'public', req.path);
-  if (req.path !== '/' && fs.existsSync(filePath) && !filePath.includes('.')) {
-    const ext = path.extname(filePath);
-    if (!ext || ext === '.html') {
-      // Если это HTML файл без расширения или с .html
-      const htmlFile = ext === '.html' ? filePath : filePath + '.html';
-      if (fs.existsSync(htmlFile)) {
-        return res.sendFile(htmlFile);
-      }
-    } else {
-      // Если файл с расширением существует
-      return res.sendFile(filePath);
-    }
-  }
-  
-  // Для корневого пути проверяем launch.html
-  if (req.path === '/') {
-    const launchPath = path.join(__dirname, 'public', 'launch.html');
-    if (fs.existsSync(launchPath)) {
-      return res.sendFile(launchPath);
-    }
-  }
-  
-  // Если ничего не найдено, отдаем простую страницу
+// Главная страница
+app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -918,6 +630,7 @@ app.get('*', (req, res) => {
         .endpoint { background: rgba(255,255,255,0.2); padding: 15px; margin: 10px 0; border-radius: 10px; text-align: left; }
         a { color: white; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
+        .btn { display: inline-block; background: white; color: #667eea; padding: 12px 24px; border-radius: 8px; margin: 10px; text-decoration: none; }
       </style>
     </head>
     <body>
@@ -925,42 +638,69 @@ app.get('*', (req, res) => {
         <h1>🚀 Coolpep Server запущен!</h1>
         <p>Сервер работает на порту ${PORT}</p>
         
+        <a href="/reels-feed.html" class="btn">📹 Смотреть Reels</a>
+        <a href="/upload-video.html" class="btn">⬆️ Загрузить видео</a>
+        
         <div class="endpoint">
-          <strong>📹 Reels:</strong><br>
-          <a href="/reels-feed.html" target="_blank">/reels-feed.html</a> - Лента видео<br>
-          <a href="/upload-video.html" target="_blank">/upload-video.html</a> - Загрузить видео<br>
-          <a href="/api/reels/feed" target="_blank">/api/reels/feed</a> - API ленты Reels
+          <strong>📹 Reels API:</strong><br>
+          <a href="/api/reels/feed" target="_blank">GET /api/reels/feed</a> - Лента видео<br>
+          <a href="/api/reels/upload" target="_blank">POST /api/reels/upload</a> - Загрузить видео<br>
+          <a href="/api/reels/create-test" target="_blank">POST /api/reels/create-test</a> - Тестовые данные
         </div>
         
         <div class="endpoint">
           <strong>🔧 Инструменты:</strong><br>
-          <a href="/api/health" target="_blank">/api/health</a> - Проверка сервера<br>
-          <a href="/api/debug" target="_blank">/api/debug</a> - Отладка данных<br>
-          <a href="/api/reels/create-test" target="_blank">/api/reels/create-test</a> - Создать тестовые данные (POST)
+          <a href="/api/health" target="_blank">GET /api/health</a> - Проверка сервера<br>
+          <a href="/api/stats" target="_blank">GET /api/stats</a> - Статистика
         </div>
         
         <div class="endpoint">
-          <strong>👤 Пользователи (тестовые):</strong><br>
-          ID: 11111111-1111-1111-1111-111111111111 - Иван Иванов<br>
-          ID: 22222222-2222-2222-2222-222222222222 - Анна Петрова<br>
-          ID: 33333333-3333-3333-3333-333333333333 - Дмитрий Сидоров<br>
-          ID: 44444444-4444-4444-4444-444444444444 - Мария Козлова
+          <strong>👤 Тестовые пользователи:</strong><br>
+          • 11111111-1111-1111-1111-111111111111 - Иван Иванов<br>
+          • 22222222-2222-2222-2222-222222222222 - Анна Петрова<br>
+          • 33333333-3333-3333-3333-333333333333 - Дмитрий Сидоров<br>
+          • 44444444-4444-4444-4444-444444444444 - Мария Козлова
         </div>
         
-        <p style="margin-top: 30px;">📁 Загруженные видео: ${fs.readdirSync(uploadsDir).length} файлов</p>
+        <p style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+          Видео сохраняются в базе данных как Base64 (до 10MB)
+        </p>
       </div>
     </body>
     </html>
   `);
 });
 
+// Все остальные запросы → index.html или 404
+app.get('*', (req, res) => {
+  // Если запрос начинается с /api/, возвращаем 404
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API route not found: ' + req.path });
+  }
+  
+  // Проверяем существование файла
+  const filePath = path.join(__dirname, 'public', req.path);
+  const fs = require('fs');
+  
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+  
+  // Проверяем с расширением .html
+  const htmlPath = filePath + '.html';
+  if (fs.existsSync(htmlPath)) {
+    return res.sendFile(htmlPath);
+  }
+  
+  // Если ничего не найдено
+  res.status(404).send('Page not found');
+});
+
 // Запуск сервера
 app.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`📡 API доступен по адресу: http://localhost:${PORT}/api/`);
-  console.log(`🌐 Frontend доступен по адресу: http://localhost:${PORT}/`);
+  console.log(`🌐 Доступен по адресу: http://localhost:${PORT}`);
   console.log(`📹 Reels: http://localhost:${PORT}/reels-feed.html`);
   console.log(`⬆️ Upload: http://localhost:${PORT}/upload-video.html`);
-  console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔧 Debug: http://localhost:${PORT}/api/debug`);
+  console.log(`✅ Health: http://localhost:${PORT}/api/health`);
 });
