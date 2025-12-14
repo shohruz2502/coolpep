@@ -195,7 +195,7 @@
             text-decoration: none;
         }
         
-        /* Нижняя навигация */
+        /* Нижняя навигация - ИСПРАВЛЕНА */
         .bottom-nav {
             background: white;
             padding: 15px 20px;
@@ -300,6 +300,20 @@
             .bottom-nav {
                 padding: 10px 15px;
             }
+            
+            .nav-item {
+                max-width: 70px;
+            }
+            
+            .nav-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            
+            .nav-label {
+                font-size: 10px;
+            }
         }
     </style>
 </head>
@@ -341,7 +355,7 @@
         <div class="feed-section">
             <div class="section-title">
                 VASTAPAE - Ваша лента
-                <a href="#" class="see-all">Обновить</a>
+                <a href="vastapae-feed.html" class="see-all">Перейти</a>
             </div>
             
             <div class="feed-empty">
@@ -389,7 +403,7 @@
         </div>
     </div>
     
-    <!-- Нижняя навигация -->
+    <!-- Нижняя навигация - ИСПРАВЛЕНА (5 кнопок) -->
     <nav class="bottom-nav">
         <a href="main-hub.html" class="nav-item active">
             <div class="nav-icon">🏠</div>
@@ -404,4 +418,66 @@
         <a href="reels-feed.html" class="nav-item">
             <div class="nav-icon">🎬</div>
             <div class="nav-label">REELS</div>
-        </a
+        </a>
+        
+        <a href="family-main.html" class="nav-item">
+            <div class="nav-icon">👨‍👩‍👧‍👦</div>
+            <div class="nav-label">FAMILY</div>
+        </a>
+        
+        <a href="love-chat.html" class="nav-item">
+            <div class="nav-icon">💖</div>
+            <div class="nav-label">LOVE</div>
+        </a>
+    </nav>
+    
+    <script>
+        // Загрузка данных пользователя
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = JSON.parse(localStorage.getItem('coolpep_user') || '{}');
+            
+            // Отображение имени
+            if (userData.name) {
+                const welcomeTitle = document.getElementById('welcomeTitle');
+                welcomeTitle.textContent = `Привет, ${userData.name}!`;
+                
+                // Инициалы для аватарки
+                const firstLetter = userData.name.charAt(0);
+                const secondLetter = userData.surname ? userData.surname.charAt(0) : '';
+                document.getElementById('userAvatar').textContent = firstLetter + secondLetter;
+            }
+            
+            // Демо-статистика
+            document.getElementById('friendsCount').textContent = '12';
+            document.getElementById('communitiesCount').textContent = '3';
+            document.getElementById('messagesCount').textContent = '47';
+            
+            // Навигация - подсветка активного пункта
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.href.includes(window.location.pathname)) {
+                        e.preventDefault();
+                        navItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+            
+            // Обновление статистики каждые 5 секунд (демо)
+            setInterval(() => {
+                const messages = document.getElementById('messagesCount');
+                let count = parseInt(messages.textContent);
+                messages.textContent = count + 1;
+            }, 5000);
+        });
+        
+        // Обработка нажатий на карточки сообществ
+        document.querySelectorAll('.community-card').forEach(card => {
+            card.addEventListener('click', function() {
+                window.location.href = 'family-main.html';
+            });
+        });
+    </script>
+</body>
+</html>
