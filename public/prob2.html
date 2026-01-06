@@ -37,7 +37,6 @@
             overflow-x: hidden;
             font-weight: 300;
             line-height: 1.6;
-            scroll-behavior: smooth;
         }
         
         h1, h2, h3, h4 {
@@ -60,7 +59,7 @@
         .smooth-content {
             position: relative;
             width: 100%;
-            will-change: transform;
+            transform: translateY(0);
         }
         
         /* FIXED CONTACTS */
@@ -713,15 +712,6 @@
                 font-size: 1rem;
             }
         }
-        
-        /* PERFORMANCE OPTIMIZATION */
-        .gallery-item {
-            will-change: transform, opacity;
-        }
-        
-        .item-image {
-            will-change: transform, filter;
-        }
     </style>
 </head>
 <body>
@@ -818,11 +808,11 @@
     </div>
     
     <script>
-        // ГАЛЕРЕЯ ДАННЫХ с реальными URL изображений
+        // ГАЛЕРЕЯ ДАННЫХ с вашими путями к фотографиям
         const galleryData = [
             {
                 id: 1,
-                image: "https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo1.png",
                 number: "01",
                 name: "ВЕЧНОСТЬ",
                 material: "БЕЛЫЙ МРАМОР, ЗОЛОТАЯ СМАЛЬТА",
@@ -831,7 +821,7 @@
             },
             {
                 id: 2,
-                image: "https://images.unsplash.com/photo-1584556811975-70b4c758c5d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo2.png",
                 number: "02",
                 name: "ГЕОМЕТРИЯ ВРЕМЕНИ",
                 material: "ЧЕРНЫЙ ОНИКС, БЕЛЫЙ МРАМОР",
@@ -840,7 +830,7 @@
             },
             {
                 id: 3,
-                image: "https://images.unsplash.com/photo-1592210454359-9043f067919b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo3.png",
                 number: "03",
                 name: "ТЕЧЕНИЕ",
                 material: "ЗЕЛЕНЫЙ ОНИКС, КВАРЦ",
@@ -849,7 +839,7 @@
             },
             {
                 id: 4,
-                image: "https://images.unsplash.com/photo-1544144433-d50aff500b91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo4.png",
                 number: "04",
                 name: "ИМПЕРАТОР",
                 material: "КРАСНЫЙ ПОРФИР, ЗОЛОТО",
@@ -858,7 +848,7 @@
             },
             {
                 id: 5,
-                image: "https://images.unsplash.com/photo-1544098283-6d2e8e5b8e1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo5.png",
                 number: "05",
                 name: "РАССВЕТ",
                 material: "РОЗОВЫЙ МРАМОР, ПЕРЛАМУТР",
@@ -867,7 +857,7 @@
             },
             {
                 id: 6,
-                image: "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo6.png",
                 number: "06",
                 name: "НОЧНОЙ НЕБОСВОД",
                 material: "ЧЕРНЫЙ МРАМОР, ЛАЗУРИТ",
@@ -876,7 +866,7 @@
             },
             {
                 id: 7,
-                image: "https://images.unsplash.com/photo-1590620247864-6b5e5c5b5b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo7.png",
                 number: "07",
                 name: "ПАМЯТЬ ЗЕМЛИ",
                 material: "ТРАВЕРТИН, МЕДЬ",
@@ -885,7 +875,7 @@
             },
             {
                 id: 8,
-                image: "https://images.unsplash.com/photo-1592424002053-21f369ad7fdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo8.png",
                 number: "08",
                 name: "БЕСКОНЕЧНОСТЬ",
                 material: "ЗЕРКАЛЬНЫЙ МРАМОР, ХРОМ",
@@ -894,7 +884,7 @@
             },
             {
                 id: 9,
-                image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                image: "фото/photo9.png",
                 number: "09",
                 name: "ПРОИСХОЖДЕНИЕ",
                 material: "НЕОБРАБОТАННЫЙ МРАМОР, БРОНЗА",
@@ -903,10 +893,12 @@
             }
         ];
         
-        // SMOOTH SCROLL SETUP
+        // Улучшенная система плавного скролла
         let currentScroll = 0;
         let targetScroll = 0;
-        let scrollEase = 0.1;
+        let scrollEase = 0.08; // Более плавная анимация
+        let isScrolling = false;
+        let scrollAnimationId = null;
         
         const smoothContainer = document.getElementById('smoothContainer');
         const smoothContent = document.getElementById('smoothContent');
@@ -916,20 +908,41 @@
             const contentHeight = smoothContent.scrollHeight;
             smoothContainer.style.height = '100%';
             smoothContent.style.height = `${contentHeight}px`;
+            
+            // Устанавливаем высоту body для нормального скролла
+            document.body.style.height = `${contentHeight}px`;
         }
         
-        // Функция плавного скролла
-        function smoothScroll() {
-            targetScroll = window.scrollY || window.pageYOffset;
-            currentScroll += (targetScroll - currentScroll) * scrollEase;
+        // Улучшенная функция плавного скролла с requestAnimationFrame
+        function smoothScrollAnimation() {
+            // Вычисляем разницу между текущей и целевой позицией
+            const diff = targetScroll - currentScroll;
             
-            if (Math.abs(targetScroll - currentScroll) < 0.05) {
+            // Если разница очень маленькая, завершаем анимацию
+            if (Math.abs(diff) < 0.1) {
                 currentScroll = targetScroll;
+                isScrolling = false;
+                cancelAnimationFrame(scrollAnimationId);
+            } else {
+                // Плавное движение с easing
+                currentScroll += diff * scrollEase;
+                isScrolling = true;
+                scrollAnimationId = requestAnimationFrame(smoothScrollAnimation);
             }
             
+            // Применяем трансформацию
             smoothContent.style.transform = `translateY(-${currentScroll}px)`;
+            smoothContent.style.transition = 'transform 0.1s linear'; // Минимальная задержка для плавности
+        }
+        
+        // Обновление целевой позиции скролла
+        function updateTargetScroll() {
+            targetScroll = window.scrollY || window.pageYOffset;
             
-            requestAnimationFrame(smoothScroll);
+            if (!isScrolling) {
+                isScrolling = true;
+                smoothScrollAnimation();
+            }
         }
         
         // Инициализация галереи
@@ -942,7 +955,7 @@
                 galleryItem.id = `item-${item.id}`;
                 
                 // Задержка для анимации появления
-                galleryItem.style.transitionDelay = `${index * 0.1}s`;
+                galleryItem.style.transitionDelay = `${index * 0.15}s`;
                 
                 galleryItem.innerHTML = `
                     <div class="item-image-container">
@@ -954,7 +967,7 @@
                              class="item-image"
                              loading="lazy"
                              onload="this.previousElementSibling.style.display='none'"
-                             onerror="this.previousElementSibling.style.display='none'; this.src='https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'">
+                             onerror="this.previousElementSibling.style.display='none'; console.error('Ошибка загрузки:', this.src)">
                         <div class="image-overlay"></div>
                     </div>
                     <div class="item-content">
@@ -978,40 +991,53 @@
         // Анимация появления элементов при скролле
         function animateOnScroll() {
             const items = document.querySelectorAll('.gallery-item');
+            const windowHeight = window.innerHeight;
             
             items.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                const windowHeight = window.innerHeight;
+                const itemTop = rect.top;
                 
-                if (rect.top < windowHeight * 0.85) {
+                // Показываем элемент, когда он на 85% видимости
+                if (itemTop < windowHeight * 0.85) {
                     item.classList.add('visible');
                 }
             });
         }
         
-        // Управление кнопками скролла
+        // Управление кнопками скролла (ИСПРАВЛЕНО)
         function initScrollControls() {
             const scrollUpBtn = document.getElementById('scrollUp');
             const scrollDownBtn = document.getElementById('scrollDown');
             
-            scrollUpBtn.addEventListener('click', () => {
-                window.scrollBy({
-                    top: -window.innerHeight,
+            // Функция для плавной прокрутки
+            function smoothScrollTo(position) {
+                window.scrollTo({
+                    top: position,
                     behavior: 'smooth'
                 });
+            }
+            
+            scrollUpBtn.addEventListener('click', () => {
+                const currentPosition = window.scrollY || window.pageYOffset;
+                smoothScrollTo(Math.max(0, currentPosition - window.innerHeight));
             });
             
             scrollDownBtn.addEventListener('click', () => {
-                window.scrollBy({
-                    top: window.innerHeight,
-                    behavior: 'smooth'
-                });
+                const currentPosition = window.scrollY || window.pageYOffset;
+                const maxScroll = document.body.scrollHeight - window.innerHeight;
+                smoothScrollTo(Math.min(maxScroll, currentPosition + window.innerHeight));
             });
             
-            // Прокрутка колесиком мыши с плавностью
+            // Разрешаем обычный скролл колесиком мыши
+            let isWheelEvent = false;
             window.addEventListener('wheel', (e) => {
-                targetScroll += e.deltaY * 0.5;
-                window.scrollTo(0, targetScroll);
+                if (!isWheelEvent) {
+                    isWheelEvent = true;
+                    // Даем браузеру делать обычный скролл
+                    setTimeout(() => {
+                        isWheelEvent = false;
+                    }, 50);
+                }
             }, { passive: true });
         }
         
@@ -1019,23 +1045,16 @@
         function initPriceInteractions() {
             document.addEventListener('click', (e) => {
                 if (e.target.closest('.item-price')) {
-                    const contactSlider = document.querySelector('.contacts-fixed');
-                    
-                    // Добавляем анимацию пульсации
-                    contactSlider.style.animation = 'none';
-                    
-                    setTimeout(() => {
-                        contactSlider.style.animation = 'fadeInRight 0.5s';
-                    }, 10);
-                    
                     // Анимация для всех контактных иконок
                     const icons = document.querySelectorAll('.contact-icon');
                     icons.forEach(icon => {
                         icon.style.animation = 'none';
-                        setTimeout(() => {
-                            icon.style.animation = 'pulse 0.5s 3';
-                        }, 10);
+                        void icon.offsetWidth; // Trigger reflow
+                        icon.style.animation = 'pulse 0.5s 3';
                     });
+                    
+                    // Показать сообщение о запросе
+                    alert('Запрос отправлен! С вами свяжутся в ближайшее время.');
                 }
             });
         }
@@ -1045,72 +1064,79 @@
             galleryData.forEach(item => {
                 const img = new Image();
                 img.src = item.image;
+                img.onerror = function() {
+                    console.warn(`Не удалось загрузить изображение: ${item.image}`);
+                };
             });
         }
         
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
-            setHeights();
+            // Сначала инициализируем галерею
             initGallery();
+            
+            // Затем устанавливаем высоты
+            setTimeout(() => {
+                setHeights();
+            }, 100);
+            
+            // Инициализируем остальные функции
             initScrollControls();
             initPriceInteractions();
             preloadImages();
             
-            // Запускаем плавный скролл
-            smoothScroll();
+            // Настраиваем слушатели скролла
+            window.addEventListener('scroll', updateTargetScroll);
+            window.addEventListener('scroll', animateOnScroll);
+            window.addEventListener('resize', setHeights);
             
             // Первая анимация элементов
             setTimeout(() => {
                 animateOnScroll();
             }, 500);
             
-            // Обновление высоты при изменении размера окна
-            window.addEventListener('resize', setHeights);
-            
-            // Анимация при скролле
-            window.addEventListener('scroll', animateOnScroll);
-            
             // Добавляем стили для анимаций
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes pulse {
                     0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.2); }
+                    50% { transform: scale(1.15); }
                 }
                 
                 @keyframes fadeIn {
                     from { opacity: 0; }
                     to { opacity: 1; }
                 }
+                
+                /* Плавные анимации появления */
+                .gallery-item {
+                    will-change: transform, opacity;
+                }
+                
+                /* Улучшенные transition для плавности */
+                .item-number, .item-name, .item-material, .item-description, .price-container {
+                    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                }
             `;
             document.head.appendChild(style);
         });
         
-        // Для предотвращения рывков при быстром скролле
-        let lastScrollTime = 0;
-        const scrollInterval = 16; // ~60fps
-        
-        window.addEventListener('scroll', () => {
-            const now = Date.now();
-            if (now - lastScrollTime >= scrollInterval) {
-                lastScrollTime = now;
+        // Улучшенная производительность
+        window.addEventListener('load', function() {
+            // Гарантируем, что все загружено
+            setTimeout(() => {
+                setHeights();
                 animateOnScroll();
-            }
+                // Начальная позиция скролла
+                updateTargetScroll();
+            }, 300);
         });
         
         // Улучшенная производительность для мобильных устройств
         if ('ontouchstart' in window) {
-            scrollEase = 0.2; // Более плавно на мобильных
+            scrollEase = 0.12; // Более плавно на мобильных
         }
-        
-        // Инициализация после полной загрузки
-        window.addEventListener('load', function() {
-            // Убедимся, что все загружено
-            setTimeout(() => {
-                setHeights();
-                animateOnScroll();
-            }, 1000);
-        });
     </script>
 </body>
 </html>
