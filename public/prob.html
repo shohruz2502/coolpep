@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARMAR: Искусство, высеченное в вечности</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --deep-black: #0a0a0a;
+            --anthracite: #111111;
+            --gold: #D4AF37;
+            --light-gray: #e0e0e0;
+            --dark-gray: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background-color: var(--deep-black);
+            color: var(--light-gray);
+            overflow-x: hidden;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Bodoni Moda', serif;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        /* ФИКСИРОВАННЫЕ КНОПКИ СОЦИАЛЬНЫХ СЕТЕЙ */
+        .social-fixed {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 9999;
+        }
+        
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(17, 17, 17, 0.9);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .social-btn:hover {
+            background-color: var(--gold);
+            color: var(--deep-black);
+            transform: scale(1.1);
+        }
+        
+        .social-btn span {
+            position: absolute;
+            right: 60px;
+            background-color: rgba(17, 17, 17, 0.9);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gold);
+        }
+        
+        .social-btn:hover span {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .gold-line {
+            width: 0;
+            height: 2px;
+            background-color: var(--gold);
+            margin-bottom: 40px;
+            animation: drawLine 2s ease-out forwards;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes drawLine {
+            0% { width: 0; }
+            100% { width: min(80vw, 600px); }
+        }
+        
+        .hero-title {
+            font-size: clamp(1.8rem, 4vw, 3.5rem);
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 1.5s ease-out forwards;
+            animation-delay: 1.5s;
+            line-height: 1.2;
+            padding: 0 20px;
+        }
+        
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Галерея с описанием рядом */
+        .gallery-section {
+            padding: 80px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 80px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 1px;
+            background-color: var(--gold);
+            margin: 15px auto;
+        }
+        
+        .gallery-item {
+            display: flex;
+            margin-bottom: 120px;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .gallery-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gallery-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .item-image-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .item-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            filter: brightness(0.9);
+            transition: all 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform-origin: center;
+        }
+        
+        .item-image:hover {
+            filter: brightness(1.05);
+            transform: scale(1.03);
+        }
+        
+        /* Эффект свечения при наведении */
+        .item-image-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                      rgba(212, 175, 55, 0.15) 0%, 
+                      rgba(212, 175, 55, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .item-image-container:hover::after {
+            opacity: 1;
+        }
+        
+        .item-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .gallery-item:nth-child(odd) .item-content {
+            padding-left: 60px;
+        }
+        
+        .gallery-item:nth-child(even) .item-content {
+            padding-right: 60px;
+        }
+        
+        .item-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--gold);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .item-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 1px;
+            background-color: var(--gold);
+        }
+        
+        .gallery-item:nth-child(even) .item-title::after {
+            left: auto;
+            right: 0;
+        }
+        
+        .item-material {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #aaa;
+        }
+        
+        .item-description {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+        
+        .item-price {
+            display: inline-block;
+            border: 1px solid var(--gold);
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: transparent;
+            color: var(--gold);
+            font-family: 'Cormorant Garamond', serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .item-price:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            padding-right: 50px;
+        }
+        
+        .item-price::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .item-price:hover::after {
+            right: 20px;
+            opacity: 1;
+        }
+        
+        /* Why Section */
+        .why-section {
+            padding: 100px 20px;
+            text-align: center;
+            background-color: var(--anthracite);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .why-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=10');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            z-index: 0;
+        }
+        
+        .why-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .why-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+        
+        .why-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 80px 20px 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 1px;
+            background-color: var(--gold);
+        }
+        
+        .address-placeholder {
+            font-size: 1.5rem;
+            letter-spacing: 10px;
+            margin-bottom: 50px;
+            color: #555;
+            position: relative;
+            display: inline-block;
+            cursor: default;
+        }
+        
+        .address-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--dark-gray);
+            padding: 10px 15px;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .address-placeholder:hover .address-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .copyright {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 40px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        
+        /* Адаптивность для мобильных */
+        @media (max-width: 1100px) {
+            .social-fixed {
+                right: 10px;
+            }
+            
+            .social-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .social-btn span {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+                right: 50px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .gallery-item {
+                flex-direction: column !important;
+                margin-bottom: 80px;
+            }
+            
+            .item-content {
+                padding: 30px 20px !important;
+                text-align: center;
+            }
+            
+            .item-title::after {
+                left: 50% !important;
+                transform: translateX(-50%);
+            }
+            
+            .item-image {
+                height: 400px;
+            }
+            
+            .social-fixed {
+                flex-direction: row;
+                top: auto;
+                bottom: 20px;
+                right: 50%;
+                transform: translateX(50%);
+                background-color: rgba(17, 17, 17, 0.9);
+                padding: 10px;
+                border-radius: 50px;
+                gap: 20px;
+            }
+            
+            .social-btn span {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+                margin-bottom: 60px;
+            }
+            
+            .item-image {
+                height: 350px;
+            }
+            
+            .item-title {
+                font-size: 1.5rem;
+            }
+            
+            .item-description {
+                font-size: 1.1rem;
+            }
+            
+            .why-title {
+                font-size: 2rem;
+            }
+            
+            .why-text {
+                font-size: 1.1rem;
+            }
+            
+            .social-fixed {
+                bottom: 15px;
+                padding: 8px 15px;
+                gap: 15px;
+            }
+            
+            .social-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            
+            .item-image {
+                height: 300px;
+            }
+            
+            .item-content {
+                padding: 20px 15px !important;
+            }
+            
+            .social-fixed {
+                bottom: 10px;
+                padding: 6px 12px;
+                gap: 12px;
+            }
+            
+            .social-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Анимация появления для галереи */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ФИКСИРОВАННЫЕ КНОПКИ СОЦИАЛЬНЫХ СЕТЕЙ -->
+    <div class="social-fixed">
+        <a href="https://wa.me/79991234567" target="_blank" class="social-btn" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+            <span>+7 (999) 123-45-67</span>
+        </a>
+        <a href="https://instagram.com/marmar.stone" target="_blank" class="social-btn" title="Instagram">
+            <i class="fab fa-instagram"></i>
+            <span>@marmar.stone</span>
+        </a>
+    </div>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="gold-line"></div>
+        <h1 class="hero-title">MARMAR:<br>Искусство, высеченное в вечности</h1>
+        <div class="scroll-indicator">SCROLL</div>
+    </section>
+    
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <h2 class="section-title">Коллекция шедевров</h2>
+        
+        <!-- Работа 1 -->
+        <div class="gallery-item" id="item1">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная мозаика Афина" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">АФИНА</h3>
+                <div class="item-material">Материал: Белый мрамор Marmar, золотая смальта</div>
+                <p class="item-description">Вдохновленная древнегреческой мифологией, эта мозаика воплощает мудрость и совершенство. Каждый элемент вырезан вручную с точностью до микрона, создавая иллюзию движения и глубины.</p>
+                <div class="item-price">$4,500</div>
+            </div>
+        </div>
+        
+        <!-- Работа 2 -->
+        <div class="gallery-item" id="item2">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморное панно Геометрия" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">ГЕОМЕТРИЯ ВЕЧНОСТИ</h3>
+                <div class="item-material">Материал: Черный мрамор, белый оникс, лазурит</div>
+                <p class="item-description">Современная интерпретация древних орнаментов. Контрастные материалы создают оптическую иллюзию глубины, играя с восприятием пространства. Идеально для минималистичных интерьеров.</p>
+                <div class="item-price">$5,800</div>
+            </div>
+        </div>
+        
+        <!-- Работа 3 -->
+        <div class="gallery-item" id="item3">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная композиция Вода" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">СТИХИЯ ВОДЫ</h3>
+                <div class="item-material">Материал: Голубой оникс, прозрачный кварц, серебряная смальта</div>
+                <p class="item-description">Текучие формы природного камня застыли в движении. При разном освещении проявляются скрытые оттенки - от нежно-голубого до глубокого сапфирового. Каждый экземпляр уникален.</p>
+                <div class="item-price">$6,200</div>
+            </div>
+        </div>
+        
+        <!-- Работа 4 -->
+        <div class="gallery-item" id="item4">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморный шедевр Империя" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">ИМПЕРИЯ</h3>
+                <div class="item-material">Материал: Красный порфир, золотой мрамор, малахит</div>
+                <p class="item-description">Роскошь римских императоров в современном прочтении. Сочетание редких сортов камня, добываемых в ограниченных количествах. Символ власти, устойчивости и вневременной красоты.</p>
+                <div class="item-price">$8,500</div>
+            </div>
+        </div>
+        
+        <!-- Работа 5 -->
+        <div class="gallery-item" id="item5">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная панель Рассвет" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">РАССВЕТ В МРАМОРЕ</h3>
+                <div class="item-material">Материал: Розовый мрамор, перламутр, желтый оникс</div>
+                <p class="item-description">Тончайшие переходы цвета имитируют первые лучи солнца. Техника градиентной укладки разрабатывалась 2 года и является эксклюзивной для нашей мастерской.</p>
+                <div class="item-price">$7,300</div>
+            </div>
+        </div>
+        
+        <!-- Работа 6 -->
+        <div class="gallery-item" id="item6">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1583574929955-8d4f2c43c7a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная инсталляция Хаос" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">УПОРЯДОЧЕННЫЙ ХАОС</h3>
+                <div class="item-material">Материал: Змеевик, яшма, обсидиан, бронза</div>
+                <p class="item-description">Кажущийся хаос форм обретает гармонию при детальном рассмотрении. Философское высказывание в камне о балансе между природой и человеческим вмешательством.</p>
+                <div class="item-price">$9,100</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Why Section -->
+    <section class="why-section">
+        <div class="why-content">
+            <h2 class="why-title">Почему это стоит того?</h2>
+            <p class="why-text">
+                Мы не просто продаем камень. Мы укрощаем стихию. Каждый элемент вырезан нашими мастерами индивидуально под ваш узор. Это единственный в мире экземпляр, который будет принадлежать только вам. Мрамор живет тысячелетия — ваше вложение в интерьер станет наследием.
+            </p>
+            <p class="why-text">
+                Древние цивилизации строили из мрамора храмы и дворцы, которые стоят до сих пор. Мы продолжаем эту традицию, превращая природный камень в современное искусство для вашего пространства.
+            </p>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="address-placeholder">
+            __________
+            <div class="address-tooltip">Адрес ателье предоставляется по запросу</div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 MARMAR Stone Masterpieces. Все права защищены.
+        </div>
+    </footer>
+    
+    <!-- Modal для увеличенного изображения -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <img class="modal-image" id="modalImage" src="" alt="Увеличенное изображение">
+        </div>
+    </div>
+    
+    <script>
+        // Анимация появления элементов при скролле
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Добавляем разные анимации для четных и нечетных элементов
+                    const index = Array.from(document.querySelectorAll('.gallery-item')).indexOf(entry.target);
+                    if (index % 2 === 0) {
+                        entry.target.style.animation = 'slideInLeft 0.8s ease forwards';
+                    } else {
+                        entry.target.style.animation = 'slideInRight 0.8s ease forwards';
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        // Наблюдаем за всеми элементами галереи
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            observer.observe(item);
+        });
+        
+        // Эффект свечения при движении мыши над изображением
+        document.querySelectorAll('.item-image-container').forEach(container => {
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / container.offsetWidth) * 100;
+                const y = ((e.clientY - rect.top) / container.offsetHeight) * 100;
+                
+                container.style.setProperty('--mouse-x', `${x}%`);
+                container.style.setProperty('--mouse-y', `${y}%`);
+            });
+            
+            // При клике открываем модальное окно с увеличенным изображением
+            container.addEventListener('click', () => {
+                const img = container.querySelector('.item-image');
+                const modal = document.getElementById('imageModal');
+                const modalImage = document.getElementById('modalImage');
+                
+                modalImage.src = img.src;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Закрытие модального окна
+        const closeModal = document.getElementById('closeModal');
+        const modal = document.getElementById('imageModal');
+        
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Параллакс эффект для hero секции
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.getElementById('hero');
+            
+            if (hero && scrolled < window.innerHeight) {
+                hero.style.transform = `translateY(${scrolled * 0.3}px)`;
+            }
+        });
+        
+        // Анимация для кнопок цены
+        document.querySelectorAll('.item-price').forEach(priceBtn => {
+            priceBtn.addEventListener('click', function() {
+                // Показываем контактные кнопки в углу
+                const socialBtns = document.querySelector('.social-fixed');
+                socialBtns.style.animation = 'none';
+                setTimeout(() => {
+                    socialBtns.style.animation = 'pulse 1s 3';
+                }, 10);
+                
+                // Плавно скроллим к контактам на мобильных
+                if (window.innerWidth <= 900) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Анимация при загрузке страницы
+        window.addEventListener('load', () => {
+            // Запускаем анимацию для первых видимых элементов
+            setTimeout(() => {
+                document.querySelectorAll('.gallery-item').forEach((item, index) => {
+                    const rect = item.getBoundingClientRect();
+                    if (rect.top < window.innerHeight * 0.8) {
+                        item.classList.add('visible');
+                        if (index % 2 === 0) {
+                            item.style.animation = 'slideInLeft 0.8s ease forwards';
+                        } else {
+                            item.style.animation = 'slideInRight 0.8s ease forwards';
+                        }
+                    }
+                });
+            }, 300);
+        });
+        
+        // Обработка нажатия клавиши Escape для закрытия модального окна
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
+</body>
+</html>
