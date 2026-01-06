@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARMAR | Каменные Шедевры</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@100;300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #080808;
+            --bg-darker: #050505;
+            --gold-primary: #D4AF37;
+            --gold-secondary: #FFD700;
+            --text-light: #F5F5F5;
+            --text-gray: #AAAAAA;
+            --border-gold: rgba(212, 175, 55, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-darker);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-light);
+            background: var(--bg-dark);
+            overflow-x: hidden;
+            font-weight: 300;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        /* Smooth Scroll Container */
+        .smooth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .smooth-content {
+            position: relative;
+            width: 100%;
+            will-change: transform;
+        }
+        
+        /* FIXED CONTACTS */
+        .contacts-fixed {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            opacity: 0;
+            animation: fadeInRight 1s 1.5s forwards;
+        }
+        
+        @keyframes fadeInRight {
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+        
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-icon:hover {
+            transform: scale(1.1);
+            background: var(--gold-primary);
+            color: var(--bg-darker);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+        
+        .contact-tooltip {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(10, 10, 10, 0.95);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            border: 1px solid var(--border-gold);
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-icon:hover .contact-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* HERO SECTION */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000 0%, #0a0a0a 100%);
+            z-index: 1;
+        }
+        
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            padding: 0 20px;
+            max-width: 1000px;
+        }
+        
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 5rem);
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: titleReveal 1.2s 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            color: var(--gold-primary);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: subtitleReveal 1s 0.8s ease-out forwards;
+            margin-bottom: 40px;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 50px;
+            color: var(--text-gray);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s 1s forwards;
+        }
+        
+        @keyframes titleReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes subtitleReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            animation: fadeIn 1s 1.2s forwards;
+        }
+        
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--gold-primary), transparent);
+            margin-top: 10px;
+            animation: scrollLine 2s infinite;
+        }
+        
+        @keyframes scrollLine {
+            0%, 100% { transform: scaleY(1); opacity: 1; }
+            50% { transform: scaleY(0.3); opacity: 0.5; }
+        }
+        
+        /* GALLERY SECTION */
+        .gallery {
+            padding: 100px 50px;
+            position: relative;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 80px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s 1.5s forwards;
+        }
+        
+        .gallery-items {
+            display: flex;
+            flex-direction: column;
+            gap: 150px;
+        }
+        
+        .gallery-item {
+            display: flex;
+            align-items: center;
+            min-height: 80vh;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1), 
+                        transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        
+        .gallery-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gallery-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .item-image-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            cursor: pointer;
+            min-height: 400px;
+        }
+        
+        .item-image {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            filter: grayscale(20%) contrast(110%) brightness(0.9);
+            transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-origin: center;
+        }
+        
+        .gallery-item.visible .item-image {
+            filter: grayscale(0%) contrast(120%) brightness(1);
+        }
+        
+        .item-image:hover {
+            transform: scale(1.05);
+            filter: grayscale(0%) contrast(130%) brightness(1.1);
+        }
+        
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(212, 175, 55, 0.1) 0%, rgba(0,0,0,0) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s;
+        }
+        
+        .item-image:hover ~ .image-overlay,
+        .item-image-container:hover .image-overlay {
+            opacity: 1;
+        }
+        
+        .item-content {
+            flex: 1;
+            padding: 0 60px;
+        }
+        
+        .gallery-item:nth-child(odd) .item-content {
+            padding-left: 80px;
+        }
+        
+        .gallery-item:nth-child(even) .item-content {
+            padding-right: 80px;
+            text-align: right;
+        }
+        
+        .item-number {
+            font-size: 1rem;
+            color: var(--gold-primary);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s 0.2s;
+        }
+        
+        .gallery-item.visible .item-number {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .item-name {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            color: var(--text-light);
+            line-height: 1.1;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s 0.3s;
+        }
+        
+        .gallery-item.visible .item-name {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .item-material {
+            font-size: 1rem;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s 0.4s;
+        }
+        
+        .gallery-item.visible .item-material {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .item-description {
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+            font-weight: 300;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s 0.5s;
+        }
+        
+        .gallery-item.visible .item-description {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .price-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s 0.6s;
+        }
+        
+        .gallery-item.visible .price-container {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .item-price {
+            display: inline-block;
+            padding: 15px 40px;
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .item-price:hover {
+            background: var(--gold-primary);
+            color: var(--bg-darker);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+        
+        .price-hover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gold-primary);
+            color: var(--bg-darker);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        
+        .item-price:hover .price-hover {
+            transform: translateX(0);
+        }
+        
+        /* FOOTER */
+        .footer {
+            padding: 100px 50px 50px;
+            text-align: center;
+            position: relative;
+            border-top: 1px solid var(--border-gold);
+            opacity: 0;
+            transform: translateY(50px);
+            animation: fadeUp 1s 0.5s forwards;
+        }
+        
+        .footer-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: var(--gold-primary);
+        }
+        
+        .footer-description {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            line-height: 1.8;
+        }
+        
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+        }
+        
+        .info-card {
+            padding: 30px;
+            border: 1px solid var(--border-gold);
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold-primary);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-card i {
+            font-size: 2.5rem;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+        }
+        
+        .info-card h4 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .info-card p, .info-card a {
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .info-card a:hover {
+            color: var(--gold-primary);
+        }
+        
+        .copyright {
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        /* SMOOTH SCROLL CONTROLS */
+        .scroll-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            animation: fadeIn 1s 2s forwards;
+        }
+        
+        .scroll-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .scroll-btn:hover {
+            background: var(--gold-primary);
+            color: var(--bg-darker);
+        }
+        
+        /* LOADING STATE */
+        .image-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border-gold);
+            border-top-color: var(--gold-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .gallery {
+                padding: 80px 30px;
+            }
+            
+            .item-content {
+                padding: 0 40px !important;
+            }
+            
+            .item-image {
+                height: 500px;
+            }
+            
+            .item-name {
+                font-size: 2.4rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .gallery-item {
+                flex-direction: column !important;
+                gap: 40px;
+            }
+            
+            .item-content {
+                text-align: center !important;
+                padding: 0 !important;
+            }
+            
+            .item-image {
+                height: 400px;
+            }
+            
+            .contacts-fixed {
+                right: 20px;
+            }
+            
+            .contact-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .contact-tooltip {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .gallery {
+                padding: 60px 20px;
+            }
+            
+            .gallery-items {
+                gap: 100px;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+                margin-bottom: 60px;
+            }
+            
+            .item-image {
+                height: 350px;
+            }
+            
+            .item-name {
+                font-size: 2rem;
+            }
+            
+            .item-price {
+                font-size: 1.6rem;
+                padding: 12px 30px;
+            }
+            
+            .footer {
+                padding: 80px 20px 30px;
+            }
+            
+            .footer-title {
+                font-size: 2rem;
+            }
+            
+            .contacts-fixed {
+                flex-direction: row;
+                top: auto;
+                bottom: 20px;
+                right: 50%;
+                transform: translateX(50%);
+                background: rgba(10, 10, 10, 0.9);
+                padding: 10px;
+                border-radius: 50px;
+                gap: 20px;
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--border-gold);
+            }
+            
+            .scroll-controls {
+                bottom: 90px;
+                left: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+                letter-spacing: 2px;
+            }
+            
+            .item-image {
+                height: 300px;
+            }
+            
+            .item-name {
+                font-size: 1.8rem;
+            }
+            
+            .item-price {
+                font-size: 1.4rem;
+                padding: 10px 25px;
+            }
+            
+            .contacts-fixed {
+                gap: 15px;
+                padding: 8px 15px;
+            }
+            
+            .contact-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+        
+        /* PERFORMANCE OPTIMIZATION */
+        .gallery-item {
+            will-change: transform, opacity;
+        }
+        
+        .item-image {
+            will-change: transform, filter;
+        }
+    </style>
+</head>
+<body>
+    <!-- Smooth Scroll Container -->
+    <div class="smooth-container" id="smoothContainer">
+        <div class="smooth-content" id="smoothContent">
+            
+            <!-- HERO SECTION -->
+            <section class="hero" id="hero">
+                <div class="hero-bg"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">MARMAR</h1>
+                    <p class="hero-subtitle">КАМЕННЫЕ ШЕДЕВРЫ</p>
+                    <p class="hero-description">
+                        Эксклюзивная коллекция мраморных скульптур, созданных вручную мастерами с вековыми традициями. 
+                        Каждая работа — уникальное произведение искусства, существующее в единственном экземпляре.
+                    </p>
+                </div>
+                <div class="scroll-indicator">
+                    <span>СКРОЛЛ</span>
+                    <div class="scroll-line"></div>
+                </div>
+            </section>
+            
+            <!-- GALLERY SECTION -->
+            <section class="gallery" id="gallery">
+                <h2 class="section-title">КОЛЛЕКЦИЯ</h2>
+                
+                <div class="gallery-items" id="galleryItems">
+                    <!-- Gallery items will be loaded dynamically -->
+                </div>
+            </section>
+            
+            <!-- FOOTER -->
+            <footer class="footer" id="footer">
+                <h2 class="footer-title">КОНТАКТЫ</h2>
+                <p class="footer-description">
+                    Для получения дополнительной информации о коллекции, индивидуальных заказах или посещении нашей мастерской, 
+                    пожалуйста, свяжитесь с нами любым удобным способом.
+                </p>
+                
+                <div class="contact-info">
+                    <div class="info-card">
+                        <i class="fab fa-whatsapp"></i>
+                        <h4>WhatsApp</h4>
+                        <a href="https://wa.me/79991234567" target="_blank">+7 (999) 123-45-67</a>
+                    </div>
+                    <div class="info-card">
+                        <i class="fab fa-instagram"></i>
+                        <h4>Instagram</h4>
+                        <a href="https://instagram.com/marmar.stone" target="_blank">@marmar.stone</a>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Email</h4>
+                        <a href="mailto:info@marmar.stone">info@marmar.stone</a>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h4>Мастерская</h4>
+                        <p>Адрес предоставляется по предварительной договоренности</p>
+                    </div>
+                </div>
+                
+                <div class="copyright">
+                    © 2023 MARMAR Stone Masterpieces. Все права защищены.<br>
+                    Каждая работа уникальна и существует в единственном экземпляре.
+                </div>
+            </footer>
+            
+        </div>
+    </div>
+    
+    <!-- FIXED CONTACTS -->
+    <div class="contacts-fixed">
+        <a href="https://wa.me/79991234567" target="_blank" class="contact-icon">
+            <i class="fab fa-whatsapp"></i>
+            <span class="contact-tooltip">WhatsApp: +7 (999) 123-45-67</span>
+        </a>
+        <a href="https://instagram.com/marmar.stone" target="_blank" class="contact-icon">
+            <i class="fab fa-instagram"></i>
+            <span class="contact-tooltip">Instagram: @marmar.stone</span>
+        </a>
+    </div>
+    
+    <!-- SCROLL CONTROLS -->
+    <div class="scroll-controls">
+        <button class="scroll-btn" id="scrollUp">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <button class="scroll-btn" id="scrollDown">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+    
+    <script>
+        // ГАЛЕРЕЯ ДАННЫХ с реальными URL изображений
+        const galleryData = [
+            {
+                id: 1,
+                image: "https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "01",
+                name: "ВЕЧНОСТЬ",
+                material: "БЕЛЫЙ МРАМОР, ЗОЛОТАЯ СМАЛЬТА",
+                description: "Совершенство форм и идеальная полировка создают эффект внутреннего свечения. Каждая грань отражает свет под разным углом, создавая игру теней.",
+                price: "$8,400"
+            },
+            {
+                id: 2,
+                image: "https://images.unsplash.com/photo-1584556811975-70b4c758c5d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "02",
+                name: "ГЕОМЕТРИЯ ВРЕМЕНИ",
+                material: "ЧЕРНЫЙ ОНИКС, БЕЛЫЙ МРАМОР",
+                description: "Абстрактная композиция, исследующая взаимодействие геометрических форм. Контраст материалов подчеркивает чистоту линий.",
+                price: "$12,500"
+            },
+            {
+                id: 3,
+                image: "https://images.unsplash.com/photo-1592210454359-9043f067919b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "03",
+                name: "ТЕЧЕНИЕ",
+                material: "ЗЕЛЕНЫЙ ОНИКС, КВАРЦ",
+                description: "Органические формы, имитирующие движение воды в камне. Уникальная текстура материала создает иллюзию глубины.",
+                price: "$9,800"
+            },
+            {
+                id: 4,
+                image: "https://images.unsplash.com/photo-1544144433-d50aff500b91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "04",
+                name: "ИМПЕРАТОР",
+                material: "КРАСНЫЙ ПОРФИР, ЗОЛОТО",
+                description: "Монументальная работа с использованием редких материалов. Символ власти и устойчивости через века.",
+                price: "$25,000"
+            },
+            {
+                id: 5,
+                image: "https://images.unsplash.com/photo-1544098283-6d2e8e5b8e1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "05",
+                name: "РАССВЕТ",
+                material: "РОЗОВЫЙ МРАМОР, ПЕРЛАМУТР",
+                description: "Нежные переходы цвета от розового к золотому. Эффект достигается за счет специальной техники полировки.",
+                price: "$15,200"
+            },
+            {
+                id: 6,
+                image: "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "06",
+                name: "НОЧНОЙ НЕБОСВОД",
+                material: "ЧЕРНЫЙ МРАМОР, ЛАЗУРИТ",
+                description: "Имитация звездного неба в камне. Вкрапления лазурита создают эффект далеких звезд.",
+                price: "$18,500"
+            },
+            {
+                id: 7,
+                image: "https://images.unsplash.com/photo-1590620247864-6b5e5c5b5b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "07",
+                name: "ПАМЯТЬ ЗЕМЛИ",
+                material: "ТРАВЕРТИН, МЕДЬ",
+                description: "Естественная текстура камня сохранена, подчеркивая его природное происхождение. Медные вставки создают контраст.",
+                price: "$11,300"
+            },
+            {
+                id: 8,
+                image: "https://images.unsplash.com/photo-1592424002053-21f369ad7fdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "08",
+                name: "БЕСКОНЕЧНОСТЬ",
+                material: "ЗЕРКАЛЬНЫЙ МРАМОР, ХРОМ",
+                description: "Футуристичная композиция с идеально отражающими поверхностями. Создает интересные оптические иллюзии.",
+                price: "$22,000"
+            },
+            {
+                id: 9,
+                image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                number: "09",
+                name: "ПРОИСХОЖДЕНИЕ",
+                material: "НЕОБРАБОТАННЫЙ МРАМОР, БРОНЗА",
+                description: "Диалог между грубой природной формой и искусственной обработкой. Сохранена естественная фактура камня.",
+                price: "$14,700"
+            }
+        ];
+        
+        // SMOOTH SCROLL SETUP
+        let currentScroll = 0;
+        let targetScroll = 0;
+        let scrollEase = 0.1;
+        
+        const smoothContainer = document.getElementById('smoothContainer');
+        const smoothContent = document.getElementById('smoothContent');
+        
+        // Устанавливаем высоту контента
+        function setHeights() {
+            const contentHeight = smoothContent.scrollHeight;
+            smoothContainer.style.height = '100%';
+            smoothContent.style.height = `${contentHeight}px`;
+        }
+        
+        // Функция плавного скролла
+        function smoothScroll() {
+            targetScroll = window.scrollY || window.pageYOffset;
+            currentScroll += (targetScroll - currentScroll) * scrollEase;
+            
+            if (Math.abs(targetScroll - currentScroll) < 0.05) {
+                currentScroll = targetScroll;
+            }
+            
+            smoothContent.style.transform = `translateY(-${currentScroll}px)`;
+            
+            requestAnimationFrame(smoothScroll);
+        }
+        
+        // Инициализация галереи
+        function initGallery() {
+            const galleryContainer = document.getElementById('galleryItems');
+            
+            galleryData.forEach((item, index) => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                galleryItem.id = `item-${item.id}`;
+                
+                // Задержка для анимации появления
+                galleryItem.style.transitionDelay = `${index * 0.1}s`;
+                
+                galleryItem.innerHTML = `
+                    <div class="item-image-container">
+                        <div class="image-loading">
+                            <div class="loader"></div>
+                        </div>
+                        <img src="${item.image}" 
+                             alt="${item.name}" 
+                             class="item-image"
+                             loading="lazy"
+                             onload="this.previousElementSibling.style.display='none'"
+                             onerror="this.previousElementSibling.style.display='none'; this.src='https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'">
+                        <div class="image-overlay"></div>
+                    </div>
+                    <div class="item-content">
+                        <div class="item-number">${item.number}</div>
+                        <h3 class="item-name">${item.name}</h3>
+                        <div class="item-material">${item.material}</div>
+                        <p class="item-description">${item.description}</p>
+                        <div class="price-container">
+                            <div class="item-price">
+                                ${item.price}
+                                <div class="price-hover">ЗАПРОСИТЬ</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                galleryContainer.appendChild(galleryItem);
+            });
+        }
+        
+        // Анимация появления элементов при скролле
+        function animateOnScroll() {
+            const items = document.querySelectorAll('.gallery-item');
+            
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                
+                if (rect.top < windowHeight * 0.85) {
+                    item.classList.add('visible');
+                }
+            });
+        }
+        
+        // Управление кнопками скролла
+        function initScrollControls() {
+            const scrollUpBtn = document.getElementById('scrollUp');
+            const scrollDownBtn = document.getElementById('scrollDown');
+            
+            scrollUpBtn.addEventListener('click', () => {
+                window.scrollBy({
+                    top: -window.innerHeight,
+                    behavior: 'smooth'
+                });
+            });
+            
+            scrollDownBtn.addEventListener('click', () => {
+                window.scrollBy({
+                    top: window.innerHeight,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Прокрутка колесиком мыши с плавностью
+            window.addEventListener('wheel', (e) => {
+                targetScroll += e.deltaY * 0.5;
+                window.scrollTo(0, targetScroll);
+            }, { passive: true });
+        }
+        
+        // Клик по цене
+        function initPriceInteractions() {
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.item-price')) {
+                    const contactSlider = document.querySelector('.contacts-fixed');
+                    
+                    // Добавляем анимацию пульсации
+                    contactSlider.style.animation = 'none';
+                    
+                    setTimeout(() => {
+                        contactSlider.style.animation = 'fadeInRight 0.5s';
+                    }, 10);
+                    
+                    // Анимация для всех контактных иконок
+                    const icons = document.querySelectorAll('.contact-icon');
+                    icons.forEach(icon => {
+                        icon.style.animation = 'none';
+                        setTimeout(() => {
+                            icon.style.animation = 'pulse 0.5s 3';
+                        }, 10);
+                    });
+                }
+            });
+        }
+        
+        // Preload images
+        function preloadImages() {
+            galleryData.forEach(item => {
+                const img = new Image();
+                img.src = item.image;
+            });
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            setHeights();
+            initGallery();
+            initScrollControls();
+            initPriceInteractions();
+            preloadImages();
+            
+            // Запускаем плавный скролл
+            smoothScroll();
+            
+            // Первая анимация элементов
+            setTimeout(() => {
+                animateOnScroll();
+            }, 500);
+            
+            // Обновление высоты при изменении размера окна
+            window.addEventListener('resize', setHeights);
+            
+            // Анимация при скролле
+            window.addEventListener('scroll', animateOnScroll);
+            
+            // Добавляем стили для анимаций
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.2); }
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+        
+        // Для предотвращения рывков при быстром скролле
+        let lastScrollTime = 0;
+        const scrollInterval = 16; // ~60fps
+        
+        window.addEventListener('scroll', () => {
+            const now = Date.now();
+            if (now - lastScrollTime >= scrollInterval) {
+                lastScrollTime = now;
+                animateOnScroll();
+            }
+        });
+        
+        // Улучшенная производительность для мобильных устройств
+        if ('ontouchstart' in window) {
+            scrollEase = 0.2; // Более плавно на мобильных
+        }
+        
+        // Инициализация после полной загрузки
+        window.addEventListener('load', function() {
+            // Убедимся, что все загружено
+            setTimeout(() => {
+                setHeights();
+                animateOnScroll();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
