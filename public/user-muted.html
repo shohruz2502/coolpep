@@ -3,933 +3,875 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coolpep - Рот закрыт</title>
+    <title>MARMAR: Искусство, высеченное в вечности</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --deep-black: #0a0a0a;
+            --anthracite: #111111;
+            --gold: #D4AF37;
+            --light-gray: #e0e0e0;
+            --dark-gray: #333333;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        html {
+            scroll-behavior: smooth;
         }
         
         body {
-            background: #f5f7fa;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Cormorant Garamond', serif;
+            background-color: var(--deep-black);
+            color: var(--light-gray);
+            overflow-x: hidden;
+            line-height: 1.6;
+            font-weight: 300;
         }
         
-        /* Верхняя панель чата */
-        .chat-header {
-            background: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        h1, h2, h3 {
+            font-family: 'Bodoni Moda', serif;
+            font-weight: 400;
+            letter-spacing: 1px;
         }
         
-        .back-button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #333;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .back-button:hover {
-            background: rgba(0,0,0,0.05);
-        }
-        
-        .community-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ff4757 0%, #ff6b6b 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        
-        .chat-info {
-            flex: 1;
-        }
-        
-        .chat-name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 3px;
-        }
-        
-        .chat-status {
-            font-size: 13px;
-            color: #ff4757;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .online-count {
-            color: #4cd964;
-            font-weight: 500;
-        }
-        
-        .muted-badge-large {
-            background: #ff4757;
-            color: white;
-            font-size: 10px;
-            padding: 3px 10px;
-            border-radius: 10px;
-            margin-left: 5px;
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .header-action {
-            font-size: 20px;
-            color: #333;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .header-action:hover {
-            background: rgba(0,0,0,0.05);
-        }
-        
-        /* Баннер блокировки */
-        .mute-banner {
-            background: linear-gradient(135deg, #ff4757 0%, #ff6b6b 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .mute-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .mute-title {
-            font-weight: 600;
-            font-size: 18px;
-        }
-        
-        .mute-reason {
-            font-size: 14px;
-            opacity: 0.9;
-            max-width: 400px;
-            line-height: 1.5;
-        }
-        
-        .mute-details {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 10px;
-        }
-        
-        .appeal-button {
-            background: white;
-            color: #ff4757;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.2s;
-        }
-        
-        .appeal-button:hover {
-            transform: scale(1.05);
-        }
-        
-        /* Область сообщений */
-        .messages-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
+        /* ФИКСИРОВАННЫЕ КНОПКИ СОЦИАЛЬНЫХ СЕТЕЙ */
+        .social-fixed {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background: #f5f7fa;
-            opacity: 0.7;
-            filter: grayscale(50%);
+            z-index: 9999;
         }
         
-        .message-date {
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            margin: 10px 0;
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(17, 17, 17, 0.9);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .social-btn:hover {
+            background-color: var(--gold);
+            color: var(--deep-black);
+            transform: scale(1.1);
+        }
+        
+        .social-btn span {
+            position: absolute;
+            right: 60px;
+            background-color: rgba(17, 17, 17, 0.9);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gold);
+        }
+        
+        .social-btn:hover span {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
             position: relative;
         }
         
-        .message-date::before {
+        .gold-line {
+            width: 0;
+            height: 2px;
+            background-color: var(--gold);
+            margin-bottom: 40px;
+            animation: drawLine 2s ease-out forwards;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes drawLine {
+            0% { width: 0; }
+            100% { width: min(80vw, 600px); }
+        }
+        
+        .hero-title {
+            font-size: clamp(1.8rem, 4vw, 3.5rem);
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 1.5s ease-out forwards;
+            animation-delay: 1.5s;
+            line-height: 1.2;
+            padding: 0 20px;
+        }
+        
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Галерея с описанием рядом */
+        .gallery-section {
+            padding: 80px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 80px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 1px;
+            background-color: var(--gold);
+            margin: 15px auto;
+        }
+        
+        .gallery-item {
+            display: flex;
+            margin-bottom: 120px;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .gallery-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gallery-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .item-image-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .item-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            filter: brightness(0.9);
+            transition: all 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform-origin: center;
+        }
+        
+        .item-image:hover {
+            filter: brightness(1.05);
+            transform: scale(1.03);
+        }
+        
+        /* Эффект свечения при наведении */
+        .item-image-container::after {
             content: '';
             position: absolute;
+            top: 0;
             left: 0;
             right: 0;
-            top: 50%;
-            height: 1px;
-            background: #eee;
-            z-index: 1;
-        }
-        
-        .message-date span {
-            background: #f5f7fa;
-            padding: 0 10px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .message {
-            max-width: 70%;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .message.incoming {
-            align-self: flex-start;
-        }
-        
-        .message.outgoing {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-            opacity: 0.5;
-        }
-        
-        .message-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            flex-shrink: 0;
-            margin-top: auto;
-        }
-        
-        .message-content {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            max-width: 100%;
-        }
-        
-        .message-bubble {
-            padding: 12px 15px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-            line-height: 1.4;
-            font-size: 14px;
-        }
-        
-        .message.incoming .message-bubble {
-            background: white;
-            border-top-left-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .message.outgoing .message-bubble {
-            background: #ccc;
-            color: #666;
-            border-top-right-radius: 5px;
-            position: relative;
-        }
-        
-        .message.outgoing .message-bubble::after {
-            content: '🔇';
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            font-size: 12px;
-        }
-        
-        .message-time {
-            font-size: 11px;
-            color: #999;
-            align-self: flex-end;
-        }
-        
-        .message.outgoing .message-time {
-            color: rgba(102, 102, 102, 0.8);
-        }
-        
-        .message-sender {
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 2px;
-        }
-        
-        .message.incoming .message-sender {
-            color: #667eea;
-        }
-        
-        .system-message {
-            align-self: center;
-            background: rgba(255, 71, 87, 0.1);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            color: #ff4757;
-            margin: 10px 0;
-            max-width: 80%;
-            text-align: center;
-            border: 1px solid rgba(255, 71, 87, 0.2);
-        }
-        
-        /* Панель ввода сообщения (заблокирована) */
-        .input-container {
-            background: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            position: sticky;
             bottom: 0;
-            z-index: 100;
-            border-top: 2px solid #ff4757;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                      rgba(212, 175, 55, 0.15) 0%, 
+                      rgba(212, 175, 55, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
         
-        .input-actions {
-            display: flex;
-            gap: 10px;
+        .item-image-container:hover::after {
+            opacity: 1;
         }
         
-        .input-action {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #ccc;
-            cursor: not-allowed;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .message-input {
+        .item-content {
             flex: 1;
-            padding: 12px 20px;
-            border: 2px solid #eee;
-            border-radius: 25px;
-            font-size: 14px;
-            resize: none;
-            max-height: 120px;
-            min-height: 20px;
-            line-height: 1.4;
-            background: #f5f5f5;
-            color: #999;
-            cursor: not-allowed;
-        }
-        
-        .message-input::placeholder {
-            color: #999;
-        }
-        
-        .send-button {
-            background: #ccc;
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: not-allowed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Информация о блокировке */
-        .block-info {
-            background: white;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .info-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-list {
+            padding: 40px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: center;
         }
         
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #666;
+        .gallery-item:nth-child(odd) .item-content {
+            padding-left: 60px;
         }
         
-        .info-icon {
-            color: #ff4757;
-            font-size: 16px;
+        .gallery-item:nth-child(even) .item-content {
+            padding-right: 60px;
         }
         
-        .countdown {
-            background: rgba(255, 71, 87, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
+        .item-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--gold);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .item-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 1px;
+            background-color: var(--gold);
+        }
+        
+        .gallery-item:nth-child(even) .item-title::after {
+            left: auto;
+            right: 0;
+        }
+        
+        .item-material {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #aaa;
+        }
+        
+        .item-description {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+        
+        .item-price {
+            display: inline-block;
+            border: 1px solid var(--gold);
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: transparent;
+            color: var(--gold);
+            font-family: 'Cormorant Garamond', serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .item-price:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            padding-right: 50px;
+        }
+        
+        .item-price::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .item-price:hover::after {
+            right: 20px;
+            opacity: 1;
+        }
+        
+        /* Why Section */
+        .why-section {
+            padding: 100px 20px;
             text-align: center;
+            background-color: var(--anthracite);
+            position: relative;
+            overflow: hidden;
         }
         
-        .countdown-title {
-            font-size: 14px;
-            color: #333;
+        .why-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=10');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            z-index: 0;
+        }
+        
+        .why-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .why-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+        
+        .why-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 80px 20px 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 1px;
+            background-color: var(--gold);
+        }
+        
+        .address-placeholder {
+            font-size: 1.5rem;
+            letter-spacing: 10px;
+            margin-bottom: 50px;
+            color: #555;
+            position: relative;
+            display: inline-block;
+            cursor: default;
+        }
+        
+        .address-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--dark-gray);
+            padding: 10px 15px;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
             margin-bottom: 10px;
         }
         
-        .countdown-timer {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ff4757;
-            font-family: monospace;
+        .address-placeholder:hover .address-tooltip {
+            opacity: 1;
+            visibility: visible;
         }
         
-        /* Нижняя навигация */
-        .bottom-nav {
-            background: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-around;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            bottom: 0;
-            z-index: 100;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
+        .copyright {
+            font-size: 0.9rem;
             color: #666;
-            transition: color 0.2s;
-            flex: 1;
-            max-width: 80px;
+            margin-top: 40px;
         }
         
-        .nav-item.active {
-            color: #667eea;
-        }
-        
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 5px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .nav-item.active .nav-icon {
-            background: rgba(102, 126, 234, 0.1);
-        }
-        
-        .nav-label {
-            font-size: 11px;
-            font-weight: 500;
-        }
-        
-        /* Модальное окно апелляции */
-        .appeal-modal {
+        /* Modal */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .appeal-modal.active {
-            display: flex;
-        }
-        
-        .appeal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .appeal-title {
-            font-weight: 600;
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-        
-        .appeal-text {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-        
-        .appeal-textarea {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            font-size: 14px;
-            min-height: 150px;
-            resize: vertical;
-            margin-bottom: 20px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
-        .appeal-textarea:focus {
-            outline: none;
-            border-color: #667eea;
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
         }
         
-        .appeal-buttons {
-            display: flex;
-            gap: 10px;
+        .modal-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
         }
         
-        .appeal-submit {
-            flex: 1;
-            background: #667eea;
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
             color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 600;
+            font-size: 2rem;
             cursor: pointer;
+            background: none;
+            border: none;
         }
         
-        .appeal-cancel {
-            flex: 1;
-            background: #f8f9fa;
-            color: #333;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
+        /* Адаптивность для мобильных */
+        @media (max-width: 1100px) {
+            .social-fixed {
+                right: 10px;
+            }
+            
+            .social-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .social-btn span {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+                right: 50px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .gallery-item {
+                flex-direction: column !important;
+                margin-bottom: 80px;
+            }
+            
+            .item-content {
+                padding: 30px 20px !important;
+                text-align: center;
+            }
+            
+            .item-title::after {
+                left: 50% !important;
+                transform: translateX(-50%);
+            }
+            
+            .item-image {
+                height: 400px;
+            }
+            
+            .social-fixed {
+                flex-direction: row;
+                top: auto;
+                bottom: 20px;
+                right: 50%;
+                transform: translateX(50%);
+                background-color: rgba(17, 17, 17, 0.9);
+                padding: 10px;
+                border-radius: 50px;
+                gap: 20px;
+            }
+            
+            .social-btn span {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+                margin-bottom: 60px;
+            }
+            
+            .item-image {
+                height: 350px;
+            }
+            
+            .item-title {
+                font-size: 1.5rem;
+            }
+            
+            .item-description {
+                font-size: 1.1rem;
+            }
+            
+            .why-title {
+                font-size: 2rem;
+            }
+            
+            .why-text {
+                font-size: 1.1rem;
+            }
+            
+            .social-fixed {
+                bottom: 15px;
+                padding: 8px 15px;
+                gap: 15px;
+            }
+            
+            .social-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
         }
         
         @media (max-width: 480px) {
-            .chat-header {
-                padding: 12px 15px;
+            .hero-title {
+                font-size: 1.8rem;
             }
             
-            .messages-container {
-                padding: 15px;
+            .item-image {
+                height: 300px;
             }
             
-            .input-container {
-                padding: 12px 15px;
+            .item-content {
+                padding: 20px 15px !important;
             }
             
-            .message {
-                max-width: 85%;
+            .social-fixed {
+                bottom: 10px;
+                padding: 6px 12px;
+                gap: 12px;
             }
             
-            .mute-banner {
-                padding: 15px;
+            .social-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
             }
-            
-            .appeal-content {
-                padding: 20px;
+        }
+        
+        /* Анимация появления для галереи */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
             }
         }
     </style>
 </head>
 <body>
-    <!-- Верхняя панель -->
-    <div class="chat-header">
-        <button class="back-button" onclick="window.location.href='family-main.html'">←</button>
-        
-        <div class="community-icon">🔇</div>
-        
-        <div class="chat-info">
-            <div class="chat-name">
-                Мой Университет
-                <span class="muted-badge-large">РОТ ЗАКРЫТ</span>
-            </div>
-            <div class="chat-status">
-                <span>🔇 Вы заблокированы в этом чате</span>
-            </div>
-        </div>
-        
-        <div class="header-actions">
-            <div class="header-action" title="Информация" onclick="showBlockInfo()">ⓘ</div>
-        </div>
-    </div>
-    
-    <!-- Баннер блокировки -->
-    <div class="mute-banner">
-        <div class="mute-icon">🤐</div>
-        <div class="mute-title">Вам закрыли рот в этом сообществе</div>
-        <div class="mute-reason">
-            Причина: <strong>Спам в чате</strong>
-        </div>
-        <div class="mute-details">
-            Администратор ограничил вашу возможность отправлять сообщения
-        </div>
-        <button class="appeal-button" onclick="openAppealModal()">
-            Подать апелляцию
-        </button>
-    </div>
-    
-    <!-- Информация о блокировке -->
-    <div class="block-info" id="blockInfo" style="display: none;">
-        <div class="info-title">
-            <span>ⓘ</span>
-            <span>Информация о блокировке</span>
-        </div>
-        
-        <div class="info-list">
-            <div class="info-item">
-                <span class="info-icon">👤</span>
-                <span>Администратор: <strong>Иван Петров</strong></span>
-            </div>
-            <div class="info-item">
-                <span class="info-icon">⏰</span>
-                <span>Заблокирован: <strong>Сегодня в 10:30</strong></span>
-            </div>
-            <div class="info-item">
-                <span class="info-icon">📝</span>
-                <span>Причина: <strong>Спам в чате</strong></span>
-            </div>
-            <div class="info-item">
-                <span class="info-icon">🔒</span>
-                <span>Тип блокировки: <strong>Только отправка сообщений</strong></span>
-            </div>
-        </div>
-        
-        <div class="countdown">
-            <div class="countdown-title">До разблокировки осталось:</div>
-            <div class="countdown-timer" id="countdownTimer">23:59:59</div>
-        </div>
-    </div>
-    
-    <!-- Область сообщений -->
-    <div class="messages-container" id="messagesContainer">
-        <div class="message-date">
-            <span>Сегодня</span>
-        </div>
-        
-        <div class="system-message">
-            🔇 <strong>Администратор закрыл вам возможность отправлять сообщения в этом чате</strong>
-        </div>
-        
-        <!-- Сообщения будут добавлены через JS -->
-    </div>
-    
-    <!-- Панель ввода (заблокирована) -->
-    <div class="input-container">
-        <div class="input-actions">
-            <button class="input-action" disabled>📎</button>
-            <button class="input-action" disabled>😊</button>
-        </div>
-        
-        <textarea 
-            class="message-input" 
-            id="messageInput" 
-            placeholder="Рот закрыт 🤐" 
-            rows="1"
-            disabled
-        ></textarea>
-        
-        <button class="send-button" disabled>➤</button>
-    </div>
-    
-    <!-- Модальное окно апелляции -->
-    <div class="appeal-modal" id="appealModal">
-        <div class="appeal-content">
-            <div class="appeal-title">Подача апелляции</div>
-            <div class="appeal-text">
-                Вы можете отправить апелляцию администратору сообщества. 
-                Опишите, почему вы считаете блокировку несправедливой, и администратор рассмотрит ваш запрос.
-            </div>
-            <textarea 
-                class="appeal-textarea" 
-                id="appealText" 
-                placeholder="Опишите ситуацию подробно... Например: 'Я отправлял сообщения по теме обсуждения и не занимался спамом...'"
-            ></textarea>
-            <div class="appeal-buttons">
-                <button class="appeal-cancel" onclick="closeAppealModal()">Отмена</button>
-                <button class="appeal-submit" onclick="submitAppeal()">Отправить апелляцию</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Нижняя навигация -->
-    <nav class="bottom-nav">
-        <a href="main-hub.html" class="nav-item">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-label">Главная</div>
+    <!-- ФИКСИРОВАННЫЕ КНОПКИ СОЦИАЛЬНЫХ СЕТЕЙ -->
+    <div class="social-fixed">
+        <a href="https://wa.me/79991234567" target="_blank" class="social-btn" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+            <span>+7 (999) 123-45-67</span>
         </a>
-        
-        <a href="vastapae-feed.html" class="nav-item">
-            <div class="nav-icon">📱</div>
-            <div class="nav-label">VASTAPAE</div>
+        <a href="https://instagram.com/marmar.stone" target="_blank" class="social-btn" title="Instagram">
+            <i class="fab fa-instagram"></i>
+            <span>@marmar.stone</span>
         </a>
+    </div>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="gold-line"></div>
+        <h1 class="hero-title">MARMAR:<br>Искусство, высеченное в вечности</h1>
+        <div class="scroll-indicator">SCROLL</div>
+    </section>
+    
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <h2 class="section-title">Коллекция шедевров</h2>
         
-        <a href="friends-list.html" class="nav-item">
-            <div class="nav-icon">👥</div>
-            <div class="nav-label">FRIEND</div>
-        </a>
+        <!-- Работа 1 -->
+        <div class="gallery-item" id="item1">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1542736667-069246bdbc6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная мозаика Афина" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">АФИНА</h3>
+                <div class="item-material">Материал: Белый мрамор Marmar, золотая смальта</div>
+                <p class="item-description">Вдохновленная древнегреческой мифологией, эта мозаика воплощает мудрость и совершенство. Каждый элемент вырезан вручную с точностью до микрона, создавая иллюзию движения и глубины.</p>
+                <div class="item-price">$4,500</div>
+            </div>
+        </div>
         
-        <a href="reels-feed.html" class="nav-item">
-            <div class="nav-icon">🎬</div>
-            <div class="nav-label">REELS</div>
-        </a>
+        <!-- Работа 2 -->
+        <div class="gallery-item" id="item2">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморное панно Геометрия" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">ГЕОМЕТРИЯ ВЕЧНОСТИ</h3>
+                <div class="item-material">Материал: Черный мрамор, белый оникс, лазурит</div>
+                <p class="item-description">Современная интерпретация древних орнаментов. Контрастные материалы создают оптическую иллюзию глубины, играя с восприятием пространства. Идеально для минималистичных интерьеров.</p>
+                <div class="item-price">$5,800</div>
+            </div>
+        </div>
         
-        <a href="family-main.html" class="nav-item">
-            <div class="nav-icon">👨‍👩‍👧‍👦</div>
-            <div class="nav-label">FAMILY</div>
-        </a>
-    </nav>
+        <!-- Работа 3 -->
+        <div class="gallery-item" id="item3">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная композиция Вода" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">СТИХИЯ ВОДЫ</h3>
+                <div class="item-material">Материал: Голубой оникс, прозрачный кварц, серебряная смальта</div>
+                <p class="item-description">Текучие формы природного камня застыли в движении. При разном освещении проявляются скрытые оттенки - от нежно-голубого до глубокого сапфирового. Каждый экземпляр уникален.</p>
+                <div class="item-price">$6,200</div>
+            </div>
+        </div>
+        
+        <!-- Работа 4 -->
+        <div class="gallery-item" id="item4">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморный шедевр Империя" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">ИМПЕРИЯ</h3>
+                <div class="item-material">Материал: Красный порфир, золотой мрамор, малахит</div>
+                <p class="item-description">Роскошь римских императоров в современном прочтении. Сочетание редких сортов камня, добываемых в ограниченных количествах. Символ власти, устойчивости и вневременной красоты.</p>
+                <div class="item-price">$8,500</div>
+            </div>
+        </div>
+        
+        <!-- Работа 5 -->
+        <div class="gallery-item" id="item5">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная панель Рассвет" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">РАССВЕТ В МРАМОРЕ</h3>
+                <div class="item-material">Материал: Розовый мрамор, перламутр, желтый оникс</div>
+                <p class="item-description">Тончайшие переходы цвета имитируют первые лучи солнца. Техника градиентной укладки разрабатывалась 2 года и является эксклюзивной для нашей мастерской.</p>
+                <div class="item-price">$7,300</div>
+            </div>
+        </div>
+        
+        <!-- Работа 6 -->
+        <div class="gallery-item" id="item6">
+            <div class="item-image-container">
+                <img src="https://images.unsplash.com/photo-1583574929955-8d4f2c43c7a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="Мраморная инсталляция Хаос" 
+                     class="item-image">
+            </div>
+            <div class="item-content">
+                <h3 class="item-title">УПОРЯДОЧЕННЫЙ ХАОС</h3>
+                <div class="item-material">Материал: Змеевик, яшма, обсидиан, бронза</div>
+                <p class="item-description">Кажущийся хаос форм обретает гармонию при детальном рассмотрении. Философское высказывание в камне о балансе между природой и человеческим вмешательством.</p>
+                <div class="item-price">$9,100</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Why Section -->
+    <section class="why-section">
+        <div class="why-content">
+            <h2 class="why-title">Почему это стоит того?</h2>
+            <p class="why-text">
+                Мы не просто продаем камень. Мы укрощаем стихию. Каждый элемент вырезан нашими мастерами индивидуально под ваш узор. Это единственный в мире экземпляр, который будет принадлежать только вам. Мрамор живет тысячелетия — ваше вложение в интерьер станет наследием.
+            </p>
+            <p class="why-text">
+                Древние цивилизации строили из мрамора храмы и дворцы, которые стоят до сих пор. Мы продолжаем эту традицию, превращая природный камень в современное искусство для вашего пространства.
+            </p>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="address-placeholder">
+            __________
+            <div class="address-tooltip">Адрес ателье предоставляется по запросу</div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 MARMAR Stone Masterpieces. Все права защищены.
+        </div>
+    </footer>
+    
+    <!-- Modal для увеличенного изображения -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <img class="modal-image" id="modalImage" src="" alt="Увеличенное изображение">
+        </div>
+    </div>
     
     <script>
-        // История сообщений (только чтение)
-        let messages = [
-            { id: 1, text: "Привет всем! Кто идет на лекцию в 10:00?", sender: "Анна Сидорова", initial: "АС", time: "09:15", type: "incoming" },
-            { id: 2, text: "Я буду там. Говорят, будет важная информация по экзаменам", sender: "Иван Петров", initial: "ИП", time: "09:17", type: "incoming" },
-            { id: 3, text: "РЕКЛАМА!!! Купите мои курсы! РЕКЛАМА!!!", sender: "Вы", initial: "Я", time: "09:18", type: "outgoing" },
-            { id: 4, text: "Пожалуйста, не размещайте рекламу в чате", sender: "Администратор", initial: "АД", time: "09:19", type: "incoming" },
-            { id: 5, text: "ЕЩЕ БОЛЬШЕ РЕКЛАМЫ!!! КУПИТЕ ВСЕ!!!", sender: "Вы", initial: "Я", time: "09:20", type: "outgoing" },
-            { id: 6, text: "Я тоже приду. Кто конспекты за прошлую лекцию сфоткал?", sender: "Дмитрий Козлов", initial: "ДК", time: "09:20", type: "incoming" },
-            { id: 7, text: "🔇 Администратор закрыл рот пользователю Спамер", sender: "system", initial: "", time: "09:21", type: "system" },
-            { id: 8, text: "У меня есть конспекты, могу скинуть", sender: "Мария Волкова", initial: "МВ", time: "09:22", type: "incoming" },
-            { id: 9, text: "Попробую отправить сообщение...", sender: "Вы", initial: "Я", time: "09:25", type: "outgoing" },
-            { id: 10, text: "Еще одно сообщение...", sender: "Вы", initial: "Я", time: "09:26", type: "outgoing" }
-        ];
+        // Анимация появления элементов при скролле
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
         
-        // Таймер обратного отсчета
-        let countdownTime = 24 * 60 * 60; // 24 часа в секундах
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Добавляем разные анимации для четных и нечетных элементов
+                    const index = Array.from(document.querySelectorAll('.gallery-item')).indexOf(entry.target);
+                    if (index % 2 === 0) {
+                        entry.target.style.animation = 'slideInLeft 0.8s ease forwards';
+                    } else {
+                        entry.target.style.animation = 'slideInRight 0.8s ease forwards';
+                    }
+                }
+            });
+        }, observerOptions);
         
-        document.addEventListener('DOMContentLoaded', function() {
-            // Загрузка сообщений
-            renderMessages();
-            
-            // Запуск таймера
-            startCountdown();
-            
-            // Проверка статуса блокировки в реальном времени
-            checkMuteStatus();
-            
-            // Симуляция новых сообщений от других пользователей
-            simulateIncomingMessages();
+        // Наблюдаем за всеми элементами галереи
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            observer.observe(item);
         });
         
-        function renderMessages() {
-            const container = document.getElementById('messagesContainer');
-            
-            // Очищаем контейнер кроме первого элемента (дата)
-            const existingMessages = container.querySelectorAll('.message, .system-message');
-            existingMessages.forEach(msg => {
-                if (!msg.classList.contains('message-date') && !msg.id) {
-                    msg.remove();
-                }
+        // Эффект свечения при движении мыши над изображением
+        document.querySelectorAll('.item-image-container').forEach(container => {
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / container.offsetWidth) * 100;
+                const y = ((e.clientY - rect.top) / container.offsetHeight) * 100;
+                
+                container.style.setProperty('--mouse-x', `${x}%`);
+                container.style.setProperty('--mouse-y', `${y}%`);
             });
             
-            // Добавляем сообщения
-            messages.forEach(msg => {
-                if (msg.type === 'system') {
-                    const systemMsg = document.createElement('div');
-                    systemMsg.className = 'system-message';
-                    systemMsg.innerHTML = msg.text;
-                    container.appendChild(systemMsg);
-                } else {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${msg.type}`;
-                    
-                    messageDiv.innerHTML = `
-                        <div class="message-avatar">${msg.initial}</div>
-                        <div class="message-content">
-                            ${msg.type === 'incoming' ? `<div class="message-sender">${msg.sender}</div>` : ''}
-                            <div class="message-bubble">${msg.text}</div>
-                            <div class="message-time">${msg.time}</div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(messageDiv);
-                }
+            // При клике открываем модальное окно с увеличенным изображением
+            container.addEventListener('click', () => {
+                const img = container.querySelector('.item-image');
+                const modal = document.getElementById('imageModal');
+                const modalImage = document.getElementById('modalImage');
+                
+                modalImage.src = img.src;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             });
-            
-            // Автоскролл вниз
-            container.scrollTop = container.scrollHeight;
-        }
+        });
         
-        function startCountdown() {
-            const timerElement = document.getElementById('countdownTimer');
-            
-            function updateTimer() {
-                const hours = Math.floor(countdownTime / 3600);
-                const minutes = Math.floor((countdownTime % 3600) / 60);
-                const seconds = countdownTime % 60;
-                
-                timerElement.textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (countdownTime > 0) {
-                    countdownTime--;
-                    setTimeout(updateTimer, 1000);
-                } else {
-                    timerElement.textContent = "00:00:00";
-                    checkMuteStatus(); // Проверяем, сняли ли блокировку
-                }
-            }
-            
-            updateTimer();
-        }
+        // Закрытие модального окна
+        const closeModal = document.getElementById('closeModal');
+        const modal = document.getElementById('imageModal');
         
-        function checkMuteStatus() {
-            // Проверяем статус в localStorage
-            const isMuted = localStorage.getItem('user_muted') === 'true';
-            
-            if (!isMuted) {
-                // Если мут снят, показываем уведомление и перенаправляем
-                setTimeout(() => {
-                    alert('Вам открыли рот! Теперь вы можете снова отправлять сообщения.');
-                    window.location.href = 'community-chat.html';
-                }, 1000);
-            }
-        }
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
         
-        function simulateIncomingMessages() {
-            setInterval(() => {
-                if (Math.random() > 0.8 && messages.length < 20) {
-                    const incomingMessages = [
-                        { text: "Кто-нибудь был на вчерашнем семинаре?", sender: "Елена Смирнова", initial: "ЕС" },
-                        { text: "Да, там много интересного рассказывали", sender: "Сергей Иванов", initial: "СИ" },
-                        { text: "Можете кратко пересказать?", sender: "Ольга Кузнецова", initial: "ОК" },
-                        { text: "Кстати, завтра будет дополнительная лекция", sender: "Алексей Новиков", initial: "АН" }
-                    ];
-                    
-                    const randomMessage = incomingMessages[Math.floor(Math.random() * incomingMessages.length)];
-                    const now = new Date();
-                    const time = now.getHours().toString().padStart(2, '0') + ':' + 
-                                now.getMinutes().toString().padStart(2, '0');
-                    
-                    const newMessage = {
-                        id: messages.length + 1,
-                        text: randomMessage.text,
-                        sender: randomMessage.sender,
-                        initial: randomMessage.initial,
-                        time: time,
-                        type: 'incoming'
-                    };
-                    
-                    messages.push(newMessage);
-                    renderMessages();
-                }
-            }, 30000);
-        }
-        
-        function showBlockInfo() {
-            const blockInfo = document.getElementById('blockInfo');
-            blockInfo.style.display = blockInfo.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function openAppealModal() {
-            document.getElementById('appealModal').classList.add('active');
-        }
-        
-        function closeAppealModal() {
-            document.getElementById('appealModal').classList.remove('active');
-        }
-        
-        function submitAppeal() {
-            const appealText = document.getElementById('appealText').value.trim();
-            
-            if (appealText.length < 10) {
-                alert('Пожалуйста, напишите более подробное объяснение (минимум 10 символов)');
-                return;
-            }
-            
-            // В реальном приложении здесь был бы запрос к серверу
-            alert('Ваша апелляция отправлена администратору. Вы получите ответ в течение 24 часов.');
-            
-            // Закрываем модальное окно
-            closeAppealModal();
-            
-            // Очищаем поле
-            document.getElementById('appealText').value = '';
-            
-            // Показываем системное сообщение в чате
-            const container = document.getElementById('messagesContainer');
-            const systemMsg = document.createElement('div');
-            systemMsg.className = 'system-message';
-            systemMsg.textContent = '📨 Вы отправили апелляцию администратору';
-            container.appendChild(systemMsg);
-            container.scrollTop = container.scrollHeight;
-        }
-        
-        // Обработка изменения статуса "мута" в реальном времени
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'user_muted' && e.newValue === 'false') {
-                alert('Вам открыли рот! Перенаправление в обычный чат...');
-                setTimeout(() => {
-                    window.location.href = 'community-chat.html';
-                }, 2000);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
             }
         });
         
-        // Пытаемся отправить сообщение (демо реакции на попытку)
-        document.getElementById('messageInput').addEventListener('focus', function() {
-            alert('Вы заблокированы в этом чате и не можете отправлять сообщения.');
+        // Параллакс эффект для hero секции
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.getElementById('hero');
+            
+            if (hero && scrolled < window.innerHeight) {
+                hero.style.transform = `translateY(${scrolled * 0.3}px)`;
+            }
+        });
+        
+        // Анимация для кнопок цены
+        document.querySelectorAll('.item-price').forEach(priceBtn => {
+            priceBtn.addEventListener('click', function() {
+                // Показываем контактные кнопки в углу
+                const socialBtns = document.querySelector('.social-fixed');
+                socialBtns.style.animation = 'none';
+                setTimeout(() => {
+                    socialBtns.style.animation = 'pulse 1s 3';
+                }, 10);
+                
+                // Плавно скроллим к контактам на мобильных
+                if (window.innerWidth <= 900) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Анимация при загрузке страницы
+        window.addEventListener('load', () => {
+            // Запускаем анимацию для первых видимых элементов
+            setTimeout(() => {
+                document.querySelectorAll('.gallery-item').forEach((item, index) => {
+                    const rect = item.getBoundingClientRect();
+                    if (rect.top < window.innerHeight * 0.8) {
+                        item.classList.add('visible');
+                        if (index % 2 === 0) {
+                            item.style.animation = 'slideInLeft 0.8s ease forwards';
+                        } else {
+                            item.style.animation = 'slideInRight 0.8s ease forwards';
+                        }
+                    }
+                });
+            }, 300);
+        });
+        
+        // Обработка нажатия клавиши Escape для закрытия модального окна
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         });
     </script>
 </body>
