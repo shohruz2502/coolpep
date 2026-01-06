@@ -551,7 +551,38 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'main-hub.html'));
 });
 
-// Основные страницы
+// Основные страницы - УПРОЩЕННЫЙ ПОДХОД
+// Вместо предопределенного списка, будем искать файлы динамически
+
+// Маршрут для HTML страниц с пробелами
+app.get('/prob-2', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'prob 2.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.redirect('/');
+  }
+});
+
+app.get('/prob-2.html', (req, res) => {
+  res.redirect('/prob-2');
+});
+
+// Маршрут для prob.html (без пробела)
+app.get('/prob', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'prob.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.redirect('/');
+  }
+});
+
+app.get('/prob.html', (req, res) => {
+  res.redirect('/prob');
+});
+
+// Динамические маршруты для остальных страниц
 const pages = [
   'reels-feed',
   'upload-video',
@@ -567,9 +598,7 @@ const pages = [
   'launch',
   'auth-phone',
   'auth-code',
-  'profile-setup',
-  'prob',       // Добавлено: страница prob.html
-  'prob2'       // Добавлено: страница prob2.html
+  'profile-setup'
 ];
 
 // Динамические маршруты для всех страниц
@@ -593,6 +622,38 @@ pages.forEach(page => {
   });
 });
 
+// УНИВЕРСАЛЬНЫЙ МАРШРУТ для HTML файлов
+app.get('/*.html', (req, res) => {
+  const requestedFile = req.path.substring(1); // Убираем начальный слэш
+  const filePath = path.join(__dirname, 'public', requestedFile);
+  
+  console.log(`🔍 Ищем файл: ${requestedFile}`);
+  
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    console.log(`❌ Файл не найден: ${requestedFile}`);
+    
+    // Пробуем найти файл с другим именем
+    const decodedFile = decodeURIComponent(requestedFile);
+    const decodedPath = path.join(__dirname, 'public', decodedFile);
+    
+    if (fs.existsSync(decodedPath)) {
+      res.sendFile(decodedPath);
+    } else {
+      // Пробуем заменить пробелы на тире
+      const dashedFile = requestedFile.replace(/\s+/g, '-');
+      const dashedPath = path.join(__dirname, 'public', dashedFile);
+      
+      if (fs.existsSync(dashedPath)) {
+        res.sendFile(dashedPath);
+      } else {
+        res.redirect('/');
+      }
+    }
+  }
+});
+
 // Маршрут для любых других GET запросов
 app.get('*', (req, res) => {
   // API маршруты возвращают 404
@@ -600,16 +661,27 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
+  // Если запрос без расширения .html
+  if (!req.path.includes('.')) {
+    // Пробуем добавить .html
+    const htmlPath = path.join(__dirname, 'public', req.path + '.html');
+    if (fs.existsSync(htmlPath)) {
+      return res.sendFile(htmlPath);
+    }
+    
+    // Пробуем с пробелом (если запрос prob-2)
+    if (req.path === '/prob-2') {
+      const spacedPath = path.join(__dirname, 'public', 'prob 2.html');
+      if (fs.existsSync(spacedPath)) {
+        return res.sendFile(spacedPath);
+      }
+    }
+  }
+  
   // Статические файлы (CSS, JS, изображения)
   const staticPath = path.join(__dirname, 'public', req.path);
   if (fs.existsSync(staticPath)) {
     return res.sendFile(staticPath);
-  }
-  
-  // Пробуем найти HTML файл
-  const htmlPath = path.join(__dirname, 'public', req.path + '.html');
-  if (fs.existsSync(htmlPath)) {
-    return res.sendFile(htmlPath);
   }
   
   // Если ничего не найдено, показываем главную
@@ -626,7 +698,9 @@ if (require.main === module) {
     console.log(`🚀 Coolpep запущен на порту ${vercelPort}`);
     console.log(`🌐 URL: https://coolpep.vercel.app`);
     console.log(`📊 Проверка: https://coolpep.vercel.app/api/health`);
-    console.log(`📄 Доступные страницы: ${pages.join(', ')}`);
+    console.log(`📄 Примеры страниц:`);
+    console.log(`   https://coolpep.vercel.app/prob.html`);
+    console.log(`   https://coolpep.vercel.app/prob-2.html (для prob 2.html)`);
   });
 }
 
