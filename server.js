@@ -487,7 +487,7 @@ app.post('/api/reels/create-test', async (req, res) => {
       VALUES 
         ('11111111-1111-1111-1111-111111111111', '+79991234567', 'Иван Иванов', '👨', 'Люблю путешествия и спорт'),
         ('22222222-2222-2222-2222-222222222222', '+79997654321', 'Анна Петрова', '👩', 'Кофеман и дизайнер'),
-        ('33333333-3333-3333-3333-333333333333', '+79995556677', 'Дмитрий Сидorov', '💪', 'Фитнес тренер')
+        ('33333333-3333-3333-3333-333333333333', '+79995556677', 'Дмитрий Сидоров', '💪', 'Фитнес тренер')
       ON CONFLICT (phone) DO NOTHING
     `);
     
@@ -567,7 +567,9 @@ const pages = [
   'launch',
   'auth-phone',
   'auth-code',
-  'profile-setup'
+  'profile-setup',
+  'prob',       // Добавлено: страница prob.html
+  'prob2'       // Добавлено: страница prob2.html
 ];
 
 // Динамические маршруты для всех страниц
@@ -580,6 +582,7 @@ pages.forEach(page => {
       res.sendFile(filePath);
     } else {
       // Если файл не найден, перенаправляем на главную
+      console.log(`⚠️ Файл не найден: ${page}.html`);
       res.redirect('/');
     }
   });
@@ -589,175 +592,6 @@ pages.forEach(page => {
     res.redirect(`/${page}`);
   });
 });
-
-// ============= НОВЫЕ ПРОСТЫЕ СТРАНИЦЫ =============
-
-// Простые страницы для prob.html, prob 2.html и prob 3.html
-const simplePages = [
-  'prob',
-  'prob 2',
-  'prob 3'
-];
-
-simplePages.forEach(page => {
-  // Создаем безопасное имя файла (убираем пробелы)
-  const safePageName = page.replace(/\s+/g, '_');
-  
-  app.get(`/${safePageName}`, (req, res) => {
-    // Пробуем разные варианты имени файла
-    const possiblePaths = [
-      path.join(__dirname, 'public', `${page}.html`),
-      path.join(__dirname, 'public', `${safePageName}.html`),
-      path.join(__dirname, 'public', `${page.replace(/\s+/g, '')}.html`),
-      path.join(__dirname, 'public', `${safePageName.toLowerCase()}.html`)
-    ];
-    
-    // Ищем существующий файл
-    for (const filePath of possiblePaths) {
-      if (fs.existsSync(filePath)) {
-        return res.sendFile(filePath);
-      }
-    }
-    
-    // Если файл не найден, создаем простую HTML страницу с изображениями
-    const simpleHtml = `
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${page} - Coolpep</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .photo-item {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s;
-        }
-        .photo-item:hover {
-            transform: scale(1.05);
-        }
-        .photo-item img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-        .photo-caption {
-            padding: 10px;
-            text-align: center;
-            background-color: #f9f9f9;
-        }
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .back-link:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>${page} - Демонстрационная страница</h1>
-        <p>Эта страница показывает фотографии из проекта.</p>
-        
-        <div class="photo-grid">
-            <div class="photo-item">
-                <img src="/фото/photo1.png" alt="Фото 1">
-                <div class="photo-caption">Фото 1</div>
-            </div>
-            <div class="photo-item">
-                <img src="/фото/photo2.png" alt="Фото 2">
-                <div class="photo-caption">Фото 2</div>
-            </div>
-            <div class="photo-item">
-                <img src="/фото/photo3.png" alt="Фото 3">
-                <div class="photo-caption">Фото 3</div>
-            </div>
-        </div>
-        
-        <p style="margin-top: 30px;">Если фотографии не отображаются, убедитесь что файлы находятся в папке <code>public/фото/</code></p>
-        
-        <a href="/" class="back-link">← Вернуться на главную</a>
-    </div>
-</body>
-</html>
-    `;
-    
-    res.send(simpleHtml);
-  });
-  
-  // Также поддерживаем прямое обращение к HTML файлу
-  app.get(`/${page}.html`, (req, res) => {
-    res.redirect(`/${safePageName}`);
-  });
-});
-
-// Маршрут для прямого доступа к файлам в папке фото
-app.get('/фото/:filename', (req, res) => {
-  const filename = req.params.filename;
-  
-  // Пробуем разные варианты путей
-  const possiblePaths = [
-    path.join(__dirname, 'public', 'фото', filename),
-    path.join(__dirname, 'public', 'фото', filename.toLowerCase()),
-    path.join(__dirname, 'public', 'фото', filename.toUpperCase()),
-    path.join(__dirname, 'public', 'photo', filename),
-    path.join(__dirname, 'public', 'images', filename)
-  ];
-  
-  for (const filePath of possiblePaths) {
-    if (fs.existsSync(filePath)) {
-      // Определяем тип контента по расширению файла
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream';
-      
-      if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.svg') contentType = 'image/svg+xml';
-      else if (ext === '.webp') contentType = 'image/webp';
-      
-      res.setHeader('Content-Type', contentType);
-      return res.sendFile(filePath);
-    }
-  }
-  
-  // Если файл не найден
-  res.status(404).send('Файл не найден');
-});
-
-// ============= ОБРАБОТКА ДРУГИХ ЗАПРОСОВ =============
 
 // Маршрут для любых других GET запросов
 app.get('*', (req, res) => {
@@ -778,19 +612,6 @@ app.get('*', (req, res) => {
     return res.sendFile(htmlPath);
   }
   
-  // Если путь содержит пробелы, пробуем заменить их на подчеркивания
-  if (req.path.includes(' ')) {
-    const safePath = req.path.replace(/\s+/g, '_');
-    const safeStaticPath = path.join(__dirname, 'public', safePath);
-    const safeHtmlPath = path.join(__dirname, 'public', safePath + '.html');
-    
-    if (fs.existsSync(safeStaticPath)) {
-      return res.sendFile(safeStaticPath);
-    } else if (fs.existsSync(safeHtmlPath)) {
-      return res.sendFile(safeHtmlPath);
-    }
-  }
-  
   // Если ничего не найдено, показываем главную
   res.sendFile(path.join(__dirname, 'public', 'main-hub.html'));
 });
@@ -805,10 +626,7 @@ if (require.main === module) {
     console.log(`🚀 Coolpep запущен на порту ${vercelPort}`);
     console.log(`🌐 URL: https://coolpep.vercel.app`);
     console.log(`📊 Проверка: https://coolpep.vercel.app/api/health`);
-    console.log(`📸 Тестовые страницы:`);
-    console.log(`   • https://coolpep.vercel.app/prob`);
-    console.log(`   • https://coolpep.vercel.app/prob_2`);
-    console.log(`   • https://coolpep.vercel.app/prob_3`);
+    console.log(`📄 Доступные страницы: ${pages.join(', ')}`);
   });
 }
 
